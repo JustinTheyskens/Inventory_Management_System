@@ -6,7 +6,7 @@ import './App.css'
 import { dummyData } from './Objects/warehouses'
 import type { Warehouse } from './Objects/warehouse'
 import type { Item } from './Objects/Item'
-
+import WarehouseForm from './Components/WarehouseForm'
 import EditItemForm from './Components/EditItemForm'
 import ItemForm from './Components/ItemForm'
 
@@ -14,7 +14,7 @@ function App() {
   {/* States */}
   const [selectedWarehouse, setSelectedWarehouse] =
     useState<Warehouse | null>(null)
-
+  // [const, function ] = useState< 'option' | 'option' >(default) -OR useState(boolean)
   const [view, setView] = useState<'list' | 'create'>('list')
   const [viewingItems, setViewingItems] = useState(false)
   const [editingItem, setEditingItem] = useState<Item | null>(null)
@@ -57,20 +57,22 @@ function App() {
   if (view === 'create') {
     return (
       <main className="min-h-screen bg-gray-900 px-6 py-10 text-gray-100">
-        <h1 className="mb-6 text-3xl font-bold">Create Warehouse</h1>
+        <h1 className="mb-6 text-3xl font-bold">Add Warehouse</h1>
 
-        <div className="max-w-md space-y-4 rounded-lg bg-gray-800 p-6">
-          <p className="text-gray-400">
-            Warehouse creation form will go here.
-          </p>
+      <div className="max-w-md rounded-lg bg-gray-800 p-6">
+        <WarehouseForm
+          onCancel={() => setView('list')}
+          onSave={(warehouse) => {
+            console.log('Add warehouse:', warehouse)
 
-          <button
-            onClick={ () => setView('list') }
-            className="rounded bg-gray-700 px-4 py-2 hover:bg-gray-600"
-          >
-            Cancel
-          </button>
-        </div>
+            // DOTO:
+            // setWarehouses(prev => [prev, warehouse])
+            // call backend
+
+            setView('list')
+          }}
+        />
+      </div>
       </main>
     )
   }
@@ -202,8 +204,7 @@ function App() {
                     )}
                   </div>
 
-                  {/* Item Buttons */}
-                   {/* Add Item Buttons (view*/}
+                  {/* Show Items Overlay */}
                   {addingItem && (
                     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60"
                       onClick={ () => setAddingItem(false) } >
@@ -230,8 +231,8 @@ function App() {
                     </div>
                   )}
 
-                  {/* Old Item Button */}
-                  {/* <div className="mt-6 flex justify-between">
+                  {/* Item Buttons */}
+                  <div className="mt-6 flex justify-between">
                     <button
                       onClick={ () => setAddingItem(true) }
                       className="rounded bg-gray-900 px-4 py-2 text-white hover:bg-gray-800">
@@ -243,7 +244,7 @@ function App() {
                       className="rounded bg-gray-700 px-4 py-2 hover:bg-gray-600">
                       Back
                     </button>
-                  </div> */}
+                  </div>
                 </div>
               </div>
             )} 
