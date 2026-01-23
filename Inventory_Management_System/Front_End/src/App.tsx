@@ -8,6 +8,7 @@ import type { Warehouse } from './Objects/warehouse'
 import type { Item } from './Objects/Item'
 
 import EditItemForm from './Components/EditItemForm'
+import ItemForm from './Components/ItemForm'
 
 function App() {
   {/* States */}
@@ -17,6 +18,8 @@ function App() {
   const [view, setView] = useState<'list' | 'create'>('list')
   const [viewingItems, setViewingItems] = useState(false)
   const [editingItem, setEditingItem] = useState<Item | null>(null)
+  const [addingItem, setAddingItem] = useState(false)
+
 
   {/* Handlers */}
   const handleDeleteWarehouse = (id: number) => {
@@ -30,24 +33,25 @@ function App() {
     setSelectedWarehouse(null)
   }
 
-  const addItem = (name: string) => {
-    window.confirm('new item goes here')
-    console.log('item created:', name)
-  }
+  // const addItem = (name: string) => {
 
-  const editItems = (items: Item[]) => {
-    items.forEach((element) => {
-      console.log(element.name)
-    })
-  }
+  //   window.confirm('new item goes here')
+  //   console.log('item created:', name)
+  // }
 
-  const editItem = (id: number) => {
-    const item = selectedWarehouse?.items[id]
-    const name = item?.name
+  // const editItems = (items: Item[]) => {
+  //   items.forEach((element) => {
+  //     console.log(element.name)
+  //   })
+  // }
 
-    console.log(name)
-    console.log(`item properties: ${item}`)
-  }
+  // const editItem = (id: number) => {
+  //   const item = selectedWarehouse?.items[id]
+  //   const name = item?.name
+
+  //   console.log(name)
+  //   console.log(`item properties: ${item}`)
+  // }
 
   {/* Views */}
   if (view === 'create') {
@@ -199,9 +203,37 @@ function App() {
                   </div>
 
                   {/* Item Buttons */}
-                  <div className="mt-6 flex justify-between">
+                   {/* Add Item Buttons (view*/}
+                  {addingItem && (
+                    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60"
+                      onClick={ () => setAddingItem(false) } >
+                      <div
+                        className="w-full max-w-md rounded-xl bg-gray-800 p-6 shadow-2xl"
+                        onClick={ (e) => e.stopPropagation() } >
+                        <h3 className="mb-4 text-lg font-bold text-blue-400">
+                          Add Item
+                        </h3>
+
+                        <ItemForm
+                          onCancel={() => setAddingItem(false)}
+                          onSave={(newItem) => {
+                            console.log('Add item:', newItem)
+
+                            // later:
+                            // update selectedWarehouse.items
+                            // call backend API
+
+                            setAddingItem(false)
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Old Item Button */}
+                  {/* <div className="mt-6 flex justify-between">
                     <button
-                      onClick={ () => addItem('New Item') }
+                      onClick={ () => setAddingItem(true) }
                       className="rounded bg-gray-900 px-4 py-2 text-white hover:bg-gray-800">
                       Add Item
                     </button>
@@ -211,18 +243,16 @@ function App() {
                       className="rounded bg-gray-700 px-4 py-2 hover:bg-gray-600">
                       Back
                     </button>
-                  </div>
+                  </div> */}
                 </div>
               </div>
-            )}
+            )} 
 
             {/* Edit Item Overlay Page */}
             {editingItem && (
-              <div
-                className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60"
+              <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60"
                 onClick={ () => setEditingItem(null) }>
-                <div
-                  className="w-full max-w-md rounded-xl bg-gray-800 p-6 shadow-2xl"
+                <div className="w-full max-w-md rounded-xl bg-gray-800 p-6 shadow-2xl"
                   onClick={ (e) => e.stopPropagation() }>
                   <h3 className="mb-4 text-lg font-bold text-blue-400">
                     Edit Item
