@@ -1,6 +1,4 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
 
 import { dummyData } from './Objects/warehouses'
@@ -11,14 +9,19 @@ import EditItemForm from './Components/EditItemForm'
 import ItemForm from './Components/ItemForm'
 
 function App() {
+
+    // [const, function ] = useState< 'option' | 'option' >(default) -OR useState(boolean)
   {/* States */}
-  const [selectedWarehouse, setSelectedWarehouse] =
-    useState<Warehouse | null>(null)
-  // [const, function ] = useState< 'option' | 'option' >(default) -OR useState(boolean)
-  const [view, setView] = useState<'list' | 'create'>('list')
-  const [viewingItems, setViewingItems] = useState(false)
-  const [editingItem, setEditingItem] = useState<Item | null>(null)
-  const [addingItem, setAddingItem] = useState(false)
+  // Warehouses
+  const [selectedWarehouse, setSelectedWarehouse] = useState<Warehouse | null>(null)
+  const [view, setView] = useState<'list' | 'create'>('list') // warehouse list state / create warehouse state.
+  const [warehouseSearch, setWarehouseSearch ] = useState('') // warehouse search term.
+
+  // Items
+  const [viewingItems, setViewingItems] = useState(false) // viewing item / not viewing items.
+  const [editingItem, setEditingItem] = useState<Item | null>(null) // editing item exists / editing item is null.
+  const [addingItem, setAddingItem] = useState(false) // adding item state / not addting item state.
+  const [itemSearch, setItemSearch] = useState('')
 
 
   {/* Handlers */}
@@ -32,26 +35,6 @@ function App() {
     console.log('Delete warehouse:', id)
     setSelectedWarehouse(null)
   }
-
-  // const addItem = (name: string) => {
-
-  //   window.confirm('new item goes here')
-  //   console.log('item created:', name)
-  // }
-
-  // const editItems = (items: Item[]) => {
-  //   items.forEach((element) => {
-  //     console.log(element.name)
-  //   })
-  // }
-
-  // const editItem = (id: number) => {
-  //   const item = selectedWarehouse?.items[id]
-  //   const name = item?.name
-
-  //   console.log(name)
-  //   console.log(`item properties: ${item}`)
-  // }
 
   {/* Views */}
   if (view === 'create') {
@@ -81,13 +64,26 @@ function App() {
      This is our HTML
      everything returned here is what we see on screen.
   */
-  // TODO: I want to make a box for each warehouse
+  // TODO: I want to make a box for each warehouse *cool* on hover stuff
 
   return (
     <main className="min-h-screen w-screen bg-gray-900 px-6 py-10 text-gray-100">
       <h1 className="mb-8 text-center text-3xl font-bold">
-        WaIMS - Warehouse and Inventory Management System
+        [WIMS]<br></br>
+        Warehouse Inventory Management System
       </h1>
+
+            {/* Search Bar */}
+      <div className="mb-6 flex justify-center">
+        <input
+          type="text"
+          placeholder="Search warehouses by location or ID..."
+          value={warehouseSearch}
+          onChange={(e) => setWarehouseSearch(e.target.value)}
+          className="w-full max-w-md rounded border border-gray-600 bg-white px-4 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+
 
       {/* 'Add Warehouse' Button */}
       <div className="mb-6 flex justify-end">
@@ -102,7 +98,12 @@ function App() {
       {/* Warehouse Grid */}
       <div className="mx-auto max-w-6xl">
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {dummyData.map((warehouse) => (
+          {dummyData.filter((warehouse) => // New Filter Added //
+          warehouse.location // Search by location
+          .toLowerCase() // my New Filter ends at .map //
+          .includes(warehouseSearch.toLowerCase()) || 
+          warehouse.id.toString() // Search by ID
+          .includes(warehouseSearch)).map((warehouse) => (
             <div
               key={warehouse.id}
               onClick={ () => setSelectedWarehouse(warehouse) }
@@ -179,6 +180,16 @@ function App() {
                     Items — Warehouse #{selectedWarehouse.id}
                   </h2>
 
+                  {/* Item Search Bar */}
+                  <input
+                    type="text"
+                    placeholder="Search items..."
+                    value={itemSearch}
+                    onChange={(e) => setItemSearch(e.target.value)}
+                    className="mb-4 w-full rounded border border-gray-600 bg-white px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500"
+                  />
+
+
                   {/* Item List */}
                   <div className="h-64 overflow-y-auto rounded bg-white p-4 text-gray-900">
                     {selectedWarehouse.items.length === 0 ? (
@@ -187,7 +198,10 @@ function App() {
                       </p>
                     ) : (
                       <ul className="space-y-2">
-                        {selectedWarehouse.items.map((item) => (
+                        {selectedWarehouse.items.filter((item) => // Item Filter starts here //
+                          item.name.toLowerCase().includes(itemSearch.toLowerCase()) ||
+                          item.sku.toLowerCase().includes(itemSearch.toLocaleLowerCase())
+                          ).map((item) => ( // Item Filter ends here //
                           <li
                             key={item.id}
                             className="flex items-center justify-between rounded border p-2">
