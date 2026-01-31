@@ -1,6 +1,6 @@
 import {Item} from '../Models/Item.Model';
 
-export const itemRepo = {
+export const ItemRepo = {
     findAll: () => Item.find(),
     findBySku: (sku) => Item.findOne({sku}),
     findByName: (name) => Item.find(name),

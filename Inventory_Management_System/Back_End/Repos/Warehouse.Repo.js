@@ -1,6 +1,6 @@
 import { Warehouse } from "../Models/Warehouse.Model";
 
-export const warehouseRepo = {
+export const WarehouseRepo = {
     findAll: () => Warehouse.find(),
-    
+
 }
