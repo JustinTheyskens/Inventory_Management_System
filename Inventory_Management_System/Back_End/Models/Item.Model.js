@@ -9,7 +9,9 @@
 
 // module.exports = Item;
 
-const mongoose = require('mongoose');
+// const mongoose = require('mongoose');
+
+import mongoose from "mongoose";
 
 const itemSchema = new mongoose.Schema({
     id : {
@@ -21,4 +23,4 @@ const itemSchema = new mongoose.Schema({
     quantity : Number
 });
 
-module.exports = mongoose.Model('item', itemSchema);
+export const item = mongoose.Model('item', itemSchema);

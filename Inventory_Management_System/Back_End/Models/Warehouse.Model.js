@@ -1,5 +1,6 @@
-const mongoose = require('mongoose');
-const ItemModel = require('./Item.Model');
+// const mongoose = require('mongoose');
+// const ItemModel = require('./Item.Model');
+import mongoose from "mongoose";
 
 const warehouseSchema = new mongoose.Schema({
     id : {
@@ -11,6 +12,8 @@ const warehouseSchema = new mongoose.Schema({
     current_capacity : Number,
     item : [] // How do I import itemSchema into this properly?
 });
+
+export const warehouse = mongoose.Model('warehouse', warehouseSchema);
 
 // class Warehouse
 // {
