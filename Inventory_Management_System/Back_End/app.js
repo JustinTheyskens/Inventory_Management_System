@@ -1,3 +1,15 @@
 const express = require('express');
 const app = express();
-const port = 8080;
+const port = process.env.PORT || 8080;
+
+// setting up cors
+const cors = require('cors');
+
+// setting up white list - split enables multiple white listed clients.
+app.use(cors({ origin: process.env.CORS_WHITELIST.split(',')}));
+
+// listening
+app.listen(port, () =>
+{
+    
+});
