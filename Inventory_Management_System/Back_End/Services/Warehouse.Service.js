@@ -10,7 +10,24 @@ export const WarehouseService = {
             warehouses,
             avgInventory
         }
+    },
+
+    getById: async () => {
+        try{
+            const warehouse = await WarehouseRepo.findById(warehouse);
+            return warehouse;
+        } catch (error)
+        {
+            console.error("Could not find warehouse.");
+
+        }
+
+        return null;
     }
+}
+
+const findWarehouseCount = (warehouses) => {
+    return warhouses.length;
 }
 
 const findAverageInventory = (warehouses) => {
