@@ -1,4 +1,4 @@
-import {Item} from '../Models/Item.Model';
+import {Item} from '../Models/Item.Model.js';
 
 export const ItemRepo = {
     findAll: () => Item.find(),

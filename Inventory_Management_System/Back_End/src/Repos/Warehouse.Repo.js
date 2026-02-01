@@ -1,4 +1,4 @@
-import { Warehouse } from "../Models/Warehouse.Model";
+import { Warehouse } from "../Models/Warehouse.Model.js";
 
 export const WarehouseRepo = {
     findAll: () => Warehouse.find(),

@@ -1,4 +1,4 @@
-import { WarehouseService } from "../Services/Warehouse.Service";
+import { WarehouseService } from "../Services/Warehouse.Service.js";
 
 export const WarehouseController = {
     getAll: async (req, res) => {

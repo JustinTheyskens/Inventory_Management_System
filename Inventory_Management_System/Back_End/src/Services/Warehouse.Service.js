@@ -1,4 +1,4 @@
-import { WarehouseRepo } from "../Repos/Warehouse.Repo";
+import { WarehouseRepo } from "../Repos/Warehouse.Repo.js";
 
 export const WarehouseService = {
     getAll: async () => {
