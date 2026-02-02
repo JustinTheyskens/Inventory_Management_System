@@ -12,17 +12,12 @@ export const WarehouseService = {
         }
     },
 
-    getById: async () => {
-        try{
-            const warehouse = await WarehouseRepo.findById(warehouse);
-            return warehouse;
-        } catch (error)
-        {
-            console.error("Could not find warehouse.");
+    getById: async (id) => {
+        return await WarehouseRepo.findById(id);
+    },
 
-        }
-
-        return null;
+    getByLocation: async (location) => {
+        return await WarehouseRepo.findByLocation(location);
     }
 }
 

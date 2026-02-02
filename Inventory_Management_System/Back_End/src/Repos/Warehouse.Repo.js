@@ -2,7 +2,7 @@ import { Warehouse } from "../Models/Warehouse.Model.js";
 
 export const WarehouseRepo = {
     findAll: () => Warehouse.find(),
-    findById: () => Warehouse.findById(),
-    // findByLocation: (location) => Warehouse.find(location)
+    findById: (id) => Warehouse.findById(id),
+    findByLocation: (location) => Warehouse.find(location)
 
 }
