@@ -6,9 +6,14 @@ export const WarehouseController = {
         res.json(warehouses);
     },
 
-    getById: async (req, res,) => {
+    getById: async (req, res) => {
         let id = req.id;
         const warehouse = await WarehouseService.getById(id);
         res.json(warehouse);
-    }
+    },
+
+    // getByLocation: async (req, res) => {
+    //     const warehouses = await WarehouseService.getAll();
+
+    // }
 }

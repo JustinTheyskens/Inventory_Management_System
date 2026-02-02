@@ -7,7 +7,7 @@ const warehouseSchema = new mongoose.Schema({
     //     required : true
     // },
     location : String,
-    max_capacity : String,
+    max_capacity : Number,
     current_capacity : Number,
     items : [
         {
@@ -18,17 +18,3 @@ const warehouseSchema = new mongoose.Schema({
 });
 
 export const Warehouse = mongoose.model('Warehouse', warehouseSchema);
-
-// const mongoose = require('mongoose');
-// const ItemModel = require('./Item.Model');
-
-// class Warehouse
-// {
-//     id;
-//     location;
-//     max_capacity;
-//     current_capacity;
-//     items;
-// }
-
-// module.exports = Warehouse;
