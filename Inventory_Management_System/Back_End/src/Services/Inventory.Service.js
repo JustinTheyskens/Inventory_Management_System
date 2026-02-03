@@ -2,7 +2,7 @@ import InventoryRepo from "../Repos/Inventory.Repo.js";
 
 const InventoryService = {
     getByWarehouse: async (warehouseId) => {
-        return await getByWarehouse(warehouseId)
+        return await InventoryRepo.findByWarehouse(warehouseId);
     }
 };
 
