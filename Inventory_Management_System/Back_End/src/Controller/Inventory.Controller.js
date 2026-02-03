@@ -61,5 +61,20 @@ export const InventoryController = {
         {
             res.status(400).json({message : `Error encountered: ${error.message}`});
         }
+    },
+    getByWarehouseSearch: async (req, res) => {
+        try
+        {
+            const {warehouseId} = req.params;
+            const {category, name} = req.query;
+
+            const result = await InventoryService.getByWareWithFilters(warehouseId, {category, name});
+
+            return res.json(result);
+        }
+        catch (error)
+        {
+            res.status(500).json({message : `Error encountered: ${error.message}`});
+        }
     }
 }

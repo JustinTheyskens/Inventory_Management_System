@@ -22,6 +22,19 @@ const InventoryRepo = {
         {
             new: true
         }
+    ),
+
+    findWarehouseWithItemFilter: (warehouseId, itemFIlter) => 
+        Inventory
+        .find(
+        {
+            warehouse: warehouseId
+        })
+        .populate(
+        {
+            path: "item", 
+            match: itemFIlter
+        }
     )
 
 };

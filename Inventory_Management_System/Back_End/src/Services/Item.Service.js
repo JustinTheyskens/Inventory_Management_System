@@ -10,4 +10,8 @@ export const ItemService = {
         getById: async (id) => {
             return await ItemRepo.findById(id);
         },
+
+        getBySku: async (sku) => {
+            return await ItemRepo.findBySku(sku);
+        }
 }

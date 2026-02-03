@@ -46,7 +46,7 @@ const InventoryService = {
         return await InventoryRepo.update(itemId, warehouseId, existingInventory.quantity - amount);
     },
 
-    transfer: async(itemId, fromWarehouseId, toWarehouseId, amount) => {
+    transfer: async (itemId, fromWarehouseId, toWarehouseId, amount) => {
         if (fromWarehouseId == toWarehouseId)
         {
             throw new Error("scource & destination warehouses must be different.");
@@ -58,6 +58,28 @@ const InventoryService = {
         // then add to dest.
         return await InventoryService.add(itemId, toWarehouseId, amount);
 
+    },
+
+    getByWareWithFilters: async (warehouseId, {category, name} ) => {
+        const itemFIlter = {};
+
+        if (category)
+        {
+            itemFIlter.category = category;
+        }
+
+        if (name)
+        {
+            itemFIlter.name = 
+            {
+                $regex: name,
+                $options: "i" // not case sensitive
+            };
+        }
+
+        const inventory = await InventoryRepo.findWarehouseWithItemFilter(warehouseId, itemFIlter);
+
+        return inventory.filter(row => row.item !== null);
     }
 };
 

@@ -27,4 +27,39 @@ export const ItemController = {
             res.status(500).json({message : `Error encountered: ${error.message}`});
         }
     },
+
+    getBySku: async (req, res) => {
+
+        try
+        {
+            const {sku} = req.params;
+
+            const item = await ItemService.getBySku(sku);
+
+            if (!item) 
+            {
+                return res.status(404).json({ message: `Item SKU not found: ${sku}` });
+            }
+
+            return res.status(200).json(item);
+        }
+        catch (error)
+        {
+            res.status(500).json({message : `Error encountered: ${error.message}`});
+        }
+    }
+
+    // getByCategory: async (req, res) => {
+    //     try
+    //     {
+    //         const {category} = req.params;
+
+    //         const items = await ItemService.getAll().w
+
+    //     }
+    //     catch (error)
+    //     {
+
+    //     }
+    // }
 }
