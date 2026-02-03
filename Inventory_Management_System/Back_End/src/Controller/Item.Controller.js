@@ -4,5 +4,27 @@ export const ItemController = {
     getAll: async (req, res) => {
         const items = await ItemService.getAll()
         res.json(items);
-    }
+    },
+
+    getById: async (req, res) => {
+        try
+        {
+            const {id} = req.params;
+
+            console.log("Searching for item ID:", id);
+
+            const item = await ItemService.getById(id);
+
+            if (!item)
+            {
+                return res.status(404).json({ message: `item ID not found: ${id}` });
+            }
+
+            return res.status(200).json(item);
+        }
+        catch (error)
+        {
+            res.status(500).json({message : `Error encountered: ${error.message}`});
+        }
+    },
 }

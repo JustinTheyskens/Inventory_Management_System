@@ -1,11 +1,7 @@
 import mongoose from "mongoose";
 
 const itemSchema = new mongoose.Schema({
-    // id : {
-    //     type : Number,
-    //     required : true
 
-    // },
     name : String,
     sku : { 
         type : String, 
@@ -20,16 +16,3 @@ const itemSchema = new mongoose.Schema({
 });
 
 export const Item = mongoose.model('item', itemSchema);
-
-// class Item
-// {
-//     id;
-//     name;
-//     sku;
-//     quantity;
-
-// }
-
-// module.exports = Item;
-
-// const mongoose = require('mongoose');
