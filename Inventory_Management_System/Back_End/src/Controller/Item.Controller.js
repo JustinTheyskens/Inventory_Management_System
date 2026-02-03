@@ -47,19 +47,24 @@ export const ItemController = {
         {
             res.status(500).json({message : `Error encountered: ${error.message}`});
         }
+    },
+
+    delete: async (req, res) =>
+    {
+        try
+        {
+            const {id} = req.params;
+
+            console.log("Deleting item:", id);
+
+            await ItemService.delete(id);
+
+            return res.status(204).send();
+
+        }
+        catch (error)
+        {
+            res.status(500).json({message : `Error encountered: ${error.message}`});
+        }     
     }
-
-    // getByCategory: async (req, res) => {
-    //     try
-    //     {
-    //         const {category} = req.params;
-
-    //         const items = await ItemService.getAll().w
-
-    //     }
-    //     catch (error)
-    //     {
-
-    //     }
-    // }
 }

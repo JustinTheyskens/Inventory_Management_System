@@ -44,5 +44,34 @@ export const WarehouseController = {
         {
             res.status(500).json({message : `Error encountered: ${error.message}`});
         }
+    },
+    create: async (req, res) => {
+        try 
+        {
+            const warehouse = await WarehouseService.create(req.body);
+
+            return res.status(201).json(warehouse);
+        } 
+        catch (error) 
+        {
+            res.status(400).json({message : `Error encountered: ${error.message}`});
+        }
+    },
+    delete: async (req, res) => {
+        try
+        {
+            const {id} = req.params;
+
+            console.log("Deleting warehouse:", id);
+
+            await WarehouseService.delete(id);
+
+            return res.status(204).send();
+
+        }
+        catch (error)
+        {
+            res.status(500).json({message : `Error encountered: ${error.message}`});
+        }
     }
 }

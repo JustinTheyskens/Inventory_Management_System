@@ -1,4 +1,5 @@
 import { WarehouseRepo } from "../Repos/Warehouse.Repo.js";
+import InventoryRepo from "../Repos/Inventory.Repo.js";
 
 export const WarehouseService = {
     getAll: async () => {
@@ -26,12 +27,23 @@ export const WarehouseService = {
 
         return await WarehouseRepo.search(filters);
         
+    },
+
+    create : async (data) => {
+        return await WarehouseRepo.create(data);
+    },
+
+    delete: async (id) => {
+        const hasInvetory = InventoryRepo.hasInventoryForWarehouse(id);
+
+        if (hasInvetory)
+        {
+            throw new Error("Cannot delete a warehouse with an existing inventory.");
+        }
+
+        return await WarehouseRepo.delete(id);
     }
 
-}
-
-const findWarehouseCount = (warehouses) => {
-    return warhouses.length;
 }
 
 const findAverageInventory = (warehouses) => {

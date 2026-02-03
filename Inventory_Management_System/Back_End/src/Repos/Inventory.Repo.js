@@ -35,7 +35,15 @@ const InventoryRepo = {
             path: "item", 
             match: itemFIlter
         }
-    )
+    ),
+
+    hasInventoryForWarehouse: (warehouseId) => {
+        Inventory.exists({warehouseId})
+    },
+
+    hasInventoryForItem: (itemId) => {
+        Inventory.exists({item: itemId})
+    },
 
 };
 
