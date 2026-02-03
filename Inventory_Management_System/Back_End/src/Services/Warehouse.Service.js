@@ -17,8 +17,17 @@ export const WarehouseService = {
     },
 
     getByLocation: async (location) => {
-        return await WarehouseRepo.findByLocation(location);
+
+        // have to remember that findByLocation(location) expects an object. ( { location }) expects the attr.
+        return await WarehouseRepo.findByLocation({ location });
+    },
+
+    search: async (filters) => {
+
+        return await WarehouseRepo.search(filters);
+        
     }
+
 }
 
 const findWarehouseCount = (warehouses) => {

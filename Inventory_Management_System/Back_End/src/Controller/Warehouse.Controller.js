@@ -29,24 +29,20 @@ export const WarehouseController = {
 
     },
 
-    getByLocation: async (req, res) => {
+    search: async (req, res) => {
         try
         {
-            // const warehouses = await WarehouseService.getAll();
-            const {location} = req.query;
-            if(!location)
-            {
-                return res.status(400).json({message : "location required."});
-            }
-                
-            const warehouses = await WarehouseService.getByLocation(location);
+            const {location, maxCapacity} = req.query;
+
+            const warehouses = await WarehouseService.search({location, maxCapacity});
+
+            console.log("Search params:", req.query);
+
             res.json(warehouses);
         }
         catch (error)
         {
             res.status(500).json({message : `Error encountered: ${error.message}`});
         }
-        
-
     }
 }

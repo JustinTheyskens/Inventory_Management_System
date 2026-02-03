@@ -2,7 +2,7 @@
 import mongoose from 'mongoose';
 
 export async function connectDB(){
-    const DB_URL = "mongodb://127.0.0.1:27017/admin";
+    const DB_URL = "mongodb://127.0.0.1:27017/warehousedb";
 
     try{
         await mongoose.connect(DB_URL); 
