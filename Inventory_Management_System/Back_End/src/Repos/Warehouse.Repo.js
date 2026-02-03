@@ -23,6 +23,7 @@ export const WarehouseRepo = {
 
         console.log("Mongo query:", query);
         return Warehouse.find(query);    
-    }
+    },
+    create: (data) => Warehouse.create(data)
 
 }
