@@ -1,4 +1,5 @@
 import { ItemRepo } from "../Repos/Item.repo.js";
+import InventoryRepo from "../Repos/Inventory.Repo.js";
 
 export const ItemService = {
         getAll: async () => {
@@ -13,6 +14,9 @@ export const ItemService = {
 
         getBySku: async (sku) => {
             return await ItemRepo.findBySku(sku);
+        },
+        create : async (data) => {
+            return await ItemRepo.create(data);
         },
 
         delete: async (id) => {

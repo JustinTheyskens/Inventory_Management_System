@@ -49,6 +49,19 @@ export const ItemController = {
         }
     },
 
+    create: async (req, res) => {
+        try 
+        {
+            const item = await ItemService.create(req.body);
+
+            return res.status(201).json(item);
+        } 
+        catch (error) 
+        {
+            res.status(400).json({message : `Error encountered: ${error.message}`});
+        }
+    },
+
     delete: async (req, res) =>
     {
         try
