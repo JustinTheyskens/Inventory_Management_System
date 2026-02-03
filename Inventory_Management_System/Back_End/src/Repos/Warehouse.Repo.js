@@ -24,6 +24,13 @@ export const WarehouseRepo = {
         console.log("Mongo query:", query);
         return Warehouse.find(query);    
     },
-    create: (data) => Warehouse.create(data)
+    create: (data) => Warehouse.create(data),
+    /*
+        location : String,
+    max_capacity : Number,
+    current_capacity : Number,
+    */
+    update: (location, max_capacity, current_capacity) => 
+        Warehouse.findOneAndUpdate({location, max_capacity, current_capacity})
 
 }

@@ -6,7 +6,8 @@ export const ItemRepo = {
     findBySku: (sku) => Item.findOne({sku}),
     findByName: (name) => Item.find(name),
     findByCategory: (category) => Item.find(category),
-    create: (data) => Item.create(data)
+    create: (data) => Item.create(data),
+    update: (name, sku, category) => Item.findOneAndUpdate({name, sku, category})
 
     // findAllWithWarehouse: () => Item.find().populate('warehouse')
 };

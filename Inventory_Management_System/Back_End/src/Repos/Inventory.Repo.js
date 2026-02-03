@@ -20,3 +20,5 @@ const InventoryRepo = {
         }
     )  
 };
+
+export default InventoryRepo;
