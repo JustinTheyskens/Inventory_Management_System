@@ -15,8 +15,8 @@ export default function ItemForm({
   const [name, setName] = useState(item?.name ?? '')
   const [quantity, setQty] = useState<number>(item?.quantity ?? 0)
   const [sku, setSku] = useState(item?.sku ?? '')
-const [desc, setDesc] = useState(item?.description)
-  const [loc, setLoc] = useState(item?.storageLocation)
+  const [desc, setDesc] = useState(item?.description ?? '')
+  const [category, setLoc] = useState(item?.category ?? '')
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -26,6 +26,7 @@ const [desc, setDesc] = useState(item?.description)
       name,
       quantity,
       sku,
+      category
     })
   }
 
@@ -87,11 +88,11 @@ const [desc, setDesc] = useState(item?.description)
       {/* Storage Location */}
       <div>
         <label className="mb-1 block text-sm font-medium text-gray-300">
-          Storage Location
+          Category
         </label>
         <input
           type="text"
-          value={loc}
+          value={category}
           onChange={(e) => setLoc(e.target.value)}
           className="w-full rounded border border-gray-600 bg-white px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
           required/>
