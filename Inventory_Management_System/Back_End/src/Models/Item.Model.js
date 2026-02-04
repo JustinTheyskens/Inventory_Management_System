@@ -13,7 +13,8 @@ const itemSchema = new mongoose.Schema({
     {
         type : String,
         index : true
-    }
+    },
+    description: String
 });
 
 export const Item = mongoose.model('item', itemSchema);

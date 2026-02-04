@@ -7,6 +7,8 @@ router.get('/', WarehouseController.getAll);
 router.get('/search', WarehouseController.search);
 router.get('/:id', WarehouseController.getById);
 
+router.put('/:id', WarehouseController.update);
+
 router.post('/', WarehouseController.create);
 
 router.delete('/:id', WarehouseController.delete);

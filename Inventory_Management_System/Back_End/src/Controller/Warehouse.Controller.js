@@ -57,6 +57,24 @@ export const WarehouseController = {
             res.status(400).json({message : `Error encountered: ${error.message}`});
         }
     },
+    update: async (req, res) => {
+        try
+        {
+            const {id} = req.params;
+            const warehouse = await WarehouseService.update(id, req.body);
+
+            if (!warehouse)
+            {
+                return res.status(404).json({ message: `Warehouse ID not found: ${id}` });
+            }
+
+            return res.json(warehouse);
+        }
+        catch (error)
+        {
+            res.status(400).json({message : `Error encountered: ${error.message}`});
+        }
+    },
     delete: async (req, res) => {
         try
         {

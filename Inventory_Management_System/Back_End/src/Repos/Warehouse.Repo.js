@@ -9,7 +9,7 @@ export const WarehouseRepo = {
     ' = {}' is a default empty object. this prevents destructoring from failing
      and crashing when one of the search params is undefined.
      */
-    
+
     search: ({location, maxCapacity} = {}) => {
 
         const query = {};
@@ -30,8 +30,9 @@ export const WarehouseRepo = {
 
     create: (data) => Warehouse.create(data),
   
-    update: (location, max_capacity, current_capacity) => 
-        Warehouse.findOneAndUpdate({location, max_capacity, current_capacity}),
+    // {new: true} -- display the updated version.
+    update: (id, data) => 
+        Warehouse.findByIdAndUpdate(id, data, {new: true}),
 
     delete: (id) => Warehouse.findByIdAndDelete(id),
 

@@ -32,6 +32,32 @@ export const WarehouseService = {
     create : async (data) => {
         return await WarehouseRepo.create(data);
     },
+    update : async (id, data) => {
+
+        // fields that can be updated
+        const allowedFields = 
+        [
+            "name", 
+            "location", 
+            "max_capacity"
+        ]
+
+        // updated fields go here
+        const updatedData = {};
+
+        /* 
+         * fill updatedData w/ data's values
+         * for each field in the allowed fields.
+         * REMEMBER to use *OF* and NOT *IN*.
+        */
+        for(const field of allowedFields)
+        {
+            if (data[field] !== undefined)
+                updatedData[field] = data[field];
+        }
+
+        return await WarehouseRepo.update(id, updatedData);
+    },
 
     delete: async (id) => {
         const hasInvetory = InventoryRepo.hasInventoryForWarehouse(id);
