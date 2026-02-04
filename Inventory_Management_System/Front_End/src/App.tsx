@@ -86,12 +86,12 @@ function App() {
 
 
       {/* 'Add Warehouse' Button */}
-      <div className="mb-6 flex justify-end">
+      <div className="mb-6 flex justify-center">
         <button
           onClick={() => setView('create')}
-          className="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-800 font-bold text-white shadow transition hover:bg-blue-500"
+          className="flex h-15 w-48 items-center justify-center cursor-pointer rounded-xl border border-gray-700 bg-gray-800 p-6 shadow-lg transition hover:scale-[1.02] hover:border-blue-500 hover:shadow-blue-500/20"
           aria-label="Add Warehouse">
-          +
+          Add Warehouse
         </button>
       </div>
 
