@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useEffect } from 'react'
 import './App.css'
 
 import { dummyData } from './Objects/warehouses'
@@ -10,9 +11,10 @@ import ItemForm from './Components/ItemForm'
 
 function App() {
 
-    // [const, function ] = useState< 'option' | 'option' >(default) -OR useState(boolean)
+  // [const, function ] = useState< 'option' | 'option' >(default) -OR useState(boolean)
   {/* States */}
   // Warehouses
+  const [warehouses, setWarehouses] = useState<Warehouse[]>([])
   const [selectedWarehouse, setSelectedWarehouse] = useState<Warehouse | null>(null)
   const [view, setView] = useState<'list' | 'create'>('list') // warehouse list state / create warehouse state.
   const [warehouseSearch, setWarehouseSearch ] = useState('') // warehouse search term.
@@ -24,18 +26,81 @@ function App() {
   const [itemSearch, setItemSearch] = useState('')
   const [viewingDescription, setViewingDescription] = useState<Item | null>(null)
 
+  useEffect(() => {
+  fetch('http://localhost:5000/api/warehouses')
+    .then(res => res.json())
+    .then(data => setWarehouses(data))
+    .catch(err => console.error(err))
+    }, [])
+    // on mount only
+
+
 
   {/* Handlers */}
-  const handleDeleteWarehouse = (id: number) => {
-    const confirmed = window.confirm(
-      'Are you sure you want to delete this warehouse?'
-    )
+  const handleDeleteWarehouse = async (id: number) => {
+    const confirmed = window.confirm('Are you sure you want to delete this warehouse?')
 
-    if (!confirmed) return
+    if (!confirmed) 
+      return
 
-    console.log('Delete warehouse:', id)
+    // console.log('Delete warehouse:', id)
+    await fetch(`http://localhost:5000/api/warehouses/${id}`, {method: 'DELETE', })
+
+    setWarehouses(prev => prev.filter(w => w.id !== id))
     setSelectedWarehouse(null)
   }
+
+  const handleAddItem = async (newItem : Item) => {
+
+    if (!selectedWarehouse) 
+      return
+
+    const res = await fetch(`http://localhost:5000/api/warehouses/${selectedWarehouse.id}/items`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newItem),
+    })
+
+    const createdItem = await res.json();
+
+
+    // Update state
+    setWarehouses( prev => 
+      prev.map(warehouse => warehouse.id === selectedWarehouse.id ? 
+        { ...warehouse, items: [...warehouse.items, createdItem] } : warehouse
+      )
+    )
+
+    // Keep selected warehouse in sync
+      setSelectedWarehouse(prev => prev
+      ? { ...prev, items: [...prev.items, createdItem] }: prev
+    )
+  }
+
+  const handleUpdateItem = async (updatedItem : Item) => {
+    if (!selectedWarehouse)
+      return
+
+      // fetch from server
+      await fetch(`http://localhost:5000/api/warehouses/${selectedWarehouse.id}/items/${updatedItem.id}`,
+      {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedItem),
+      })
+
+      // sync warehouses
+    setWarehouses(prev =>
+    prev.map(warehouse => warehouse.id === selectedWarehouse.id ? {
+        ...warehouse, items: warehouse.items.map(item => item.id === updatedItem.id ? updatedItem : item), 
+      } : warehouse ))
+
+      setSelectedWarehouse(prev => prev ? {
+        ...prev, items: prev.items.map(item => item.id === updatedItem.id ? updatedItem : item), 
+      } : prev )
+  }
+  
 
   {/* Views */}
   if (view === 'create') {
@@ -99,7 +164,7 @@ function App() {
       {/* Warehouse Grid */}
       <div className="mx-auto max-w-6xl">
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {dummyData.filter((warehouse) => // New Filter Added //
+          {warehouses.filter((warehouse) => // New Filter Added //
           warehouse.location // Search by location
           .toLowerCase() // my New Filter ends at .map //
           .includes(warehouseSearch.toLowerCase()) || 
@@ -266,13 +331,8 @@ function App() {
 
                         <ItemForm
                           onCancel={() => setAddingItem(false)}
-                          onSave={(newItem) => {
-                            console.log('Add item:', newItem)
-
-                            // later:
-                            // update selectedWarehouse.items
-                            // call backend API
-
+                            onSave={async (item) => {
+                            await handleAddItem(item)
                             setAddingItem(false)
                           }}
                         />
@@ -334,18 +394,13 @@ function App() {
                   <h3 className="mb-4 text-lg font-bold text-blue-400">
                     Edit Item
                   </h3>
-
-                  <EditItemForm
+                  <ItemForm
                     item={editingItem}
-                    onCancel={ () => setEditingItem(null) }
-                    onSave={ (updatedItem) => { console.log('Save item:', updatedItem)
-
-                      // TODO:
-                      // update item in warehouse state
-                      // then call backend API
-
+                    onCancel={() => setEditingItem(null)}
+                    onSave={async (item) => {
+                      await handleUpdateItem(item)
                       setEditingItem(null)
-                    } }
+                    }}
                   />
                 </div>
               </div>

@@ -16,18 +16,22 @@ export default function ItemForm({
   const [quantity, setQty] = useState<number>(item?.quantity ?? 0)
   const [sku, setSku] = useState(item?.sku ?? '')
   const [desc, setDesc] = useState(item?.description ?? '')
-  const [category, setLoc] = useState(item?.category ?? '')
+  const [category, setCategory] = useState(item?.category ?? '')
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
-    onSave({
-      id: item?.id ?? Date.now(),
-      name,
-      quantity,
-      sku,
-      category
-    })
+  onSave({
+    id: item?.id ?? Date.now(),
+    name,
+    quantity,
+    sku,
+    category,
+    description: desc,
+  })
+
+  
+
   }
 
   return (
@@ -42,7 +46,8 @@ export default function ItemForm({
           value={name}
           onChange={(e) => setName(e.target.value)}
           className="w-full rounded border border-gray-600 bg-white px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          required/>
+          required
+        />
       </div>
 
       {/* Quantity */}
@@ -56,7 +61,8 @@ export default function ItemForm({
           value={quantity}
           onChange={(e) => setQty(Number(e.target.value))}
           className="w-full rounded border border-gray-600 bg-white px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          required/>
+          required
+        />
       </div>
 
       {/* SKU */}
@@ -69,7 +75,8 @@ export default function ItemForm({
           value={sku}
           onChange={(e) => setSku(e.target.value)}
           className="w-full rounded border border-gray-600 bg-white px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          required/>
+          required
+        />
       </div>
 
       {/* Description */}
@@ -82,10 +89,11 @@ export default function ItemForm({
           value={desc}
           onChange={(e) => setDesc(e.target.value)}
           className="w-full rounded border border-gray-600 bg-white px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          required/>
+          required
+        />
       </div>
 
-      {/* Storage Location */}
+      {/* Category */}
       <div>
         <label className="mb-1 block text-sm font-medium text-gray-300">
           Category
@@ -93,23 +101,26 @@ export default function ItemForm({
         <input
           type="text"
           value={category}
-          onChange={(e) => setLoc(e.target.value)}
+          onChange={(e) => setCategory(e.target.value)}
           className="w-full rounded border border-gray-600 bg-white px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          required/>
+          required
+        />
       </div>
 
-      {/* Buttons */}
+      {/* Actions */}
       <div className="flex justify-end gap-3 pt-4">
         <button
           type="button"
           onClick={onCancel}
-          className="rounded bg-gray-700 px-4 py-2 hover:bg-gray-600">
+          className="rounded bg-gray-700 px-4 py-2 hover:bg-gray-600"
+        >
           Cancel
         </button>
 
         <button
           type="submit"
-          className="rounded bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-500">
+          className="rounded bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-500"
+        >
           Save
         </button>
       </div>
