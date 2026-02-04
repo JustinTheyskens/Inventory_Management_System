@@ -68,13 +68,13 @@ function App() {
   // TODO: I want to make a box for each warehouse *cool* on hover stuff
 
   return (
-    <main className="min-h-screen w-screen bg-gray-900 px-6 py-10 text-gray-100">
+    <main className="h-screen w-screen bg-gray-900 px-6 py-10 text-gray-100">
       <h1 className="mb-8 text-center text-3xl font-bold">
         [WIMS]<br></br>
         Warehouse Inventory Management System
       </h1>
 
-            {/* Search Bar */}
+      {/* Search Bar */}
       <div className="mb-6 flex justify-center">
         <input
           type="text"
@@ -199,6 +199,7 @@ function App() {
                     <div>Category</div>
                     <div className="text-right">Actions</div>
                   </div>
+
                   {/* Item List */}
                   <div className="h-64 overflow-y-auto rounded bg-white p-4 text-gray-900">
                     {selectedWarehouse.items.length === 0 ? (
@@ -209,7 +210,8 @@ function App() {
                       <ul className="space-y-2">
                         {selectedWarehouse.items.filter((item) => // Item Filter starts here //
                           item.name.toLowerCase().includes(itemSearch.toLowerCase()) ||
-                          item.sku.toLowerCase().includes(itemSearch.toLocaleLowerCase())
+                          item.sku.toLowerCase().includes(itemSearch.toLocaleLowerCase()) ||
+                          item.category.toLowerCase().includes(itemSearch.toLowerCase())
                           ).map((item) => ( // Item Filter ends here //
                           <li
                             key={item.id}
@@ -251,7 +253,6 @@ function App() {
                     )}
                   </div>
 
-
                   {/* Show Items Overlay */}
                   {addingItem && (
                     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60"
@@ -283,12 +284,10 @@ function App() {
                   {viewingDescription && (
                     <div
                       className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60"
-                      onClick={() => setViewingDescription(null)}
-                    >
+                      onClick={() => setViewingDescription(null)}>
                       <div
                         className="w-full max-w-md rounded-xl bg-gray-800 p-6 shadow-2xl"
-                        onClick={(e) => e.stopPropagation()}
-                      >
+                        onClick={(e) => e.stopPropagation()}>
                         <h3 className="mb-2 text-lg font-bold text-blue-400">
                           {viewingDescription.name}
                         </h3>
@@ -300,8 +299,7 @@ function App() {
                         <div className="flex justify-end">
                           <button
                             onClick={() => setViewingDescription(null)}
-                            className="rounded bg-gray-700 px-4 py-2 hover:bg-gray-600"
-                          >
+                            className="rounded bg-gray-700 px-4 py-2 hover:bg-gray-600">
                             Close
                           </button>
                         </div>

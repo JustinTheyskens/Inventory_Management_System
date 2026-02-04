@@ -2,9 +2,9 @@ export interface Item {
     id: number
     name: string
 
-    // quantity?: number
+    quantity?: number
     sku: string
-    category?: string
+    category: string
     description?: string
 }
 
