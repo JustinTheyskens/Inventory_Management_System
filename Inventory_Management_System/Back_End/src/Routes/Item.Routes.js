@@ -7,6 +7,8 @@ router.get('/', ItemController.getAll);
 router.get('/:id', ItemController.getById);
 router.get('/sku/:sku', ItemController.getBySku);
 
+router.put("/:id", ItemController.update);
+
 router.post('/', ItemController.create);
 
 router.delete("/:id", ItemController.delete);

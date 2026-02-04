@@ -18,6 +18,33 @@ export const ItemService = {
         create : async (data) => {
             return await ItemRepo.create(data);
         },
+        update : async (id, data) => {
+    
+            // fields that can be updated
+            const allowedFields = 
+            [
+                "sku",
+                "name", 
+                "category", 
+                "description"
+            ]
+    
+            // updated fields go here
+            const updatedData = {};
+    
+            /* 
+                * fill updatedData w/ data's values
+                * for each field in the allowed fields.
+                * REMEMBER to use *OF* and NOT *IN*.
+            */
+            for(const field of allowedFields)
+            {
+                if (data[field] !== undefined)
+                    updatedData[field] = data[field];
+            }
+    
+            return await ItemRepo.update(id, updatedData);
+        },
 
         delete: async (id) => {
         const hasInvetory = InventoryRepo.hasInventoryForItem(id);

@@ -31,8 +31,7 @@ export const WarehouseRepo = {
     create: (data) => Warehouse.create(data),
   
     // {new: true} -- display the updated version.
-    update: (id, data) => 
-        Warehouse.findByIdAndUpdate(id, data, {new: true}),
+    update: (id, data) => Warehouse.findByIdAndUpdate(id, data, {new: true}),
 
     delete: (id) => Warehouse.findByIdAndDelete(id),
 

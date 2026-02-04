@@ -62,6 +62,25 @@ export const ItemController = {
         }
     },
 
+    update: async (req, res) => {
+        try
+        {
+            const {id} = req.params;
+            const item = await ItemService.update(id, req.body);
+
+            if (!item)
+            {
+                return res.status(404).json({ message: `Item ID not found: ${id}` });
+            }
+
+            return res.json(item);
+        }
+        catch (error)
+        {
+            res.status(400).json({message : `Error encountered: ${error.message}`});
+        }
+    },
+
     delete: async (req, res) =>
     {
         try
