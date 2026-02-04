@@ -22,6 +22,7 @@ function App() {
   const [editingItem, setEditingItem] = useState<Item | null>(null) // editing item exists / editing item is null.
   const [addingItem, setAddingItem] = useState(false) // adding item state / not addting item state.
   const [itemSearch, setItemSearch] = useState('')
+  const [viewingDescription, setViewingDescription] = useState<Item | null>(null)
 
 
   {/* Handlers */}
@@ -190,13 +191,21 @@ function App() {
                   />
 
 
+                  
+                  {/* Item List Header */}
+                  <div className="mb-2 grid grid-cols-4 gap-4 text-xs font-semibold uppercase text-gray-500">
+                    <div>Name</div>
+                    <div>SKU</div>
+                    <div>Category</div>
+                    <div className="text-right">Actions</div>
+                  </div>
                   {/* Item List */}
                   <div className="h-64 overflow-y-auto rounded bg-white p-4 text-gray-900">
                     {selectedWarehouse.items.length === 0 ? (
                       <p className="text-sm text-gray-500">
                         No items in this warehouse.
                       </p>
-                    ) : (
+                      ) : ( 
                       <ul className="space-y-2">
                         {selectedWarehouse.items.filter((item) => // Item Filter starts here //
                           item.name.toLowerCase().includes(itemSearch.toLowerCase()) ||
@@ -204,19 +213,44 @@ function App() {
                           ).map((item) => ( // Item Filter ends here //
                           <li
                             key={item.id}
-                            className="flex items-center justify-between rounded border p-2">
-                            <span>{item.name}</span>
+                            className="grid grid-cols-4 items-center gap-4 rounded border p-3 text-sm">
+                            {/* Name */}
+                            <div className="font-medium">
+                              {item.name}
+                            </div>
 
-                            <button
-                              onClick={ () => setEditingItem(item) }
-                              className="rounded bg-gray-200 px-2 py-1 text-sm hover:bg-gray-300">
-                              Edit
-                            </button>
+                            {/* SKU */}
+                            <div className="text-gray-600">
+                              {item.sku}
+                            </div>
+
+                            {/* Category */}
+                            <div className="text-gray-600">
+                              {item.category}
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex justify-end gap-2">
+                              <button
+                                onClick={() => setViewingDescription(item)}
+                                className="rounded bg-gray-100 px-2 py-1 text-xs hover:bg-gray-200">
+                                Description
+                              </button>
+
+                              <button
+                                onClick={() => setEditingItem(item)}
+                                className="rounded bg-gray-200 px-2 py-1 text-xs hover:bg-gray-300"
+                              >
+                                Edit
+                              </button>
+                            </div>
                           </li>
+
                         ))}
                       </ul>
                     )}
                   </div>
+
 
                   {/* Show Items Overlay */}
                   {addingItem && (
@@ -241,6 +275,36 @@ function App() {
                             setAddingItem(false)
                           }}
                         />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Item Description Overlay */}
+                  {viewingDescription && (
+                    <div
+                      className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60"
+                      onClick={() => setViewingDescription(null)}
+                    >
+                      <div
+                        className="w-full max-w-md rounded-xl bg-gray-800 p-6 shadow-2xl"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <h3 className="mb-2 text-lg font-bold text-blue-400">
+                          {viewingDescription.name}
+                        </h3>
+
+                        <p className="mb-4 text-sm text-gray-300">
+                          {viewingDescription.description || 'No description provided.'}
+                        </p>
+
+                        <div className="flex justify-end">
+                          <button
+                            onClick={() => setViewingDescription(null)}
+                            className="rounded bg-gray-700 px-4 py-2 hover:bg-gray-600"
+                          >
+                            Close
+                          </button>
+                        </div>
                       </div>
                     </div>
                   )}
