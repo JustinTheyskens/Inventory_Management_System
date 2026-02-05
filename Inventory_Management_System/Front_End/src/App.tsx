@@ -2,11 +2,9 @@ import { useState } from 'react'
 import { useEffect } from 'react'
 import './App.css'
 
-import { dummyData } from './Objects/warehouses'
 import type { Warehouse } from './Objects/warehouse'
 import type { Item } from './Objects/Item'
 import WarehouseForm from './Components/WarehouseForm'
-import EditItemForm from './Components/EditItemForm'
 import ItemForm from './Components/ItemForm'
 
 function App() {
@@ -29,19 +27,58 @@ function App() {
   const [itemsLoading, setItemsLoading] = useState(false)
   const [itemsError, setItemsError] = useState<string | null>(null)
 
+
+type AnyObj = Record<string, any>
+
+const normalizeWarehouse = (w: AnyObj): Warehouse => ({
+  // required fields (make sure they exist)
+  name: String(w.name ?? ''),
+  location: String(w.location ?? ''),
+
+  // normalized fields
+  id: String(w.id ?? w._id),
+  maxItems: Number(w.maxItems ?? w.max_capacity ?? 0),
+  currentItems: Number(w.currentItems ?? w.current_capacity ?? 0),
+
+  // include any optional fields you might have
+  // items: w.items ?? [],
+})
+
+
+const normalizeInventoryToItems = (data: any[]): Item[] => {
+  // Handles BOTH shapes:
+  // 1) Flattened items [{id,name,sku,...,quantity}]
+  // 2) Inventory rows [{item:{_id,name,sku,...}, quantity}]
+  return data.map((row: any) => {
+    const itemDoc = row.item ?? row // if row.item exists, use it; else assume row IS the item
+    return {
+      ...itemDoc,
+      id: itemDoc.id ?? itemDoc._id,        // ✅ critical
+      quantity: row.quantity ?? itemDoc.quantity ?? 0, // quantity from inventory row
+    }
+  })
+}
+
+  
+
   // useEffects
   useEffect(() => {
-  fetch('http://localhost:3000/api/warehouses')
-    .then(res => res.json())
-    .then(data => 
-      {
-        console.log('WAREHOUSE RESPONSE:', data),
-      
-        !Array.isArray(data) ?         setWarehouses([]) :
+    fetch('http://localhost:3000/api/warehouses')
+      .then((res) => res.json())
+      .then((data) => {
+        console.log('WAREHOUSE RESPONSE:', data)
 
-      setWarehouses(data)})
-    .catch(err => console.error(err))
-    }, [])
+        if (!Array.isArray(data)) {
+          console.error('Expected warehouse array, got:', data)
+          setWarehouses([])
+          return
+        }
+
+        setWarehouses(data.map(normalizeWarehouse))
+      })
+    .catch((error) => console.error('Failed to load warehouses:', error))
+  }, [])
+
     // on mount only
 
     useEffect(() =>{
@@ -66,7 +103,7 @@ function App() {
     await fetch(`http://localhost:5000/api/warehouses/${id}`, {method: 'DELETE', })
 
     setWarehouses(prev => prev.filter(w => w.id !== id))
-    setSelectedWarehouse(null)
+    setViewingItems(false)
   }
 
   const handleAddItem = async (newItem : Item) => {
@@ -114,38 +151,35 @@ function App() {
 //   setWarehouseItems(data)
 //   setItemsLoading(false)
 // }
+  const loadWarehouseItems = async (warehouseId: string) => {
+    try {
+      setItemsLoading(true)
+      setItemsError(null)
 
-const loadWarehouseItems = async (warehouseId: string) => {
-  try 
-  {
-    setItemsLoading(true)
+      console.log('Loading inventory for warehouseId:', warehouseId)
 
-    console.log('Loading items for warehouse:', warehouseId)
+      const res = await fetch(`http://localhost:3000/api/inventory/warehouse/${warehouseId}`)
 
-    const res = await fetch(`http://localhost:3000/api/inventory/warehouse/${warehouseId}`)
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
 
-    if (!res.ok) 
-    {
-      throw new Error(`HTTP ${res.status}`)
-    }
+      const data = await res.json()
+      console.log('INVENTORY RESPONSE:', data)
 
-    const data = await res.json()
+      if (!Array.isArray(data)) {
+        throw new Error('Inventory response is not an array')
+      }
 
-    if (!Array.isArray(data)) 
-    {
-      console.error('Inventory response not array:', data)
-      setWarehouseItems([])
-      return
-    }
-
-      setWarehouseItems(data)
-    } catch (err) {
+      const items = normalizeInventoryToItems(data)
+      setWarehouseItems(items)
+    } catch (err: any) {
       console.error('Failed to load inventory:', err)
       setWarehouseItems([])
+      setItemsError(err?.message ?? 'Failed to load inventory')
     } finally {
       setItemsLoading(false)
     }
-}
+  }
+
 
 
 
@@ -243,7 +277,15 @@ const loadWarehouseItems = async (warehouseId: string) => {
           .includes(warehouseSearch)).map((warehouse) => (
             <div
               key={warehouse.name}
-              onClick={ () => setSelectedWarehouse(warehouse) }
+              onClick={ () => 
+                {
+                  setSelectedWarehouse(warehouse)
+                  setViewingItems(false)
+                  setAddingItem(false)
+                  setViewingDescription(null)
+                  setEditingItem(null)
+                } 
+              }
               className="cursor-pointer rounded-xl border border-gray-700 bg-gray-800 p-6 shadow-lg transition hover:scale-[1.02] hover:border-blue-500 hover:shadow-blue-500/20">
               {/* Header */}
               <h2 className="mb-4 text-xl font-semibold text-blue-400">
@@ -278,7 +320,7 @@ const loadWarehouseItems = async (warehouseId: string) => {
       {selectedWarehouse && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
-          onClick={ () => setSelectedWarehouse(null) }
+          onClick={ () => setViewingItems(false) }
           >
           <div
             className="w-full max-w-lg rounded-xl bg-gray-800 p-8 shadow-2xl"
@@ -310,7 +352,7 @@ const loadWarehouseItems = async (warehouseId: string) => {
             {/* Items View Overlay */}
             {viewingItems && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
-                  onClick={() => setSelectedWarehouse(null)} // this is the dakr background?
+                  onClick={() => setViewingItems(false)} // this is the dakr background?
                   >
                 <div className="w-full max-w-lg rounded-xl bg-gray-800 p-8 shadow-2xl"
                   onClick={(e) => e.stopPropagation()}>
@@ -363,8 +405,7 @@ const loadWarehouseItems = async (warehouseId: string) => {
 
                           <button
                             onClick={() => setEditingItem(item)}
-                            className="rounded bg-gray-200 px-2 py-1 text-sm hover:bg-gray-300"
-                          >
+                            className="rounded bg-gray-200 px-2 py-1 text-sm hover:bg-gray-300">
                             Edit
                           </button>
                         </li>
@@ -414,7 +455,15 @@ const loadWarehouseItems = async (warehouseId: string) => {
 
                         <div className="flex justify-end">
                           <button
-                            onClick={() => setViewingDescription(null)}
+                            onClick={() => 
+                              {
+                                setSelectedWarehouse(null)
+                                setViewingItems(false)
+                                setAddingItem(false)
+                                setViewingDescription(null)
+                                setEditingItem(null)
+                              }
+                            }
                             className="rounded bg-gray-700 px-4 py-2 hover:bg-gray-600">
                             Close
                           </button>
@@ -426,7 +475,13 @@ const loadWarehouseItems = async (warehouseId: string) => {
                   {/* Item Buttons */}
                   <div className="mt-6 flex justify-between">
                     <button
-                      onClick={ () => setAddingItem(true) }
+                      onClick={ () => 
+                        {
+                          setAddingItem(true)
+                          setViewingDescription(null)
+                          setEditingItem(null)
+                        } 
+                      }
                       className="rounded bg-gray-900 px-4 py-2 text-white hover:bg-gray-800">
                       Add Item
                     </button>
@@ -471,14 +526,22 @@ const loadWarehouseItems = async (warehouseId: string) => {
                   if (!selectedWarehouse) return
 
                   setViewingItems(true)
-                   //loadWarehouseItems(selectedWarehouse.id)
+                  setAddingItem(false)
+                  setViewingDescription(null)
+                  setEditingItem(null)
+
                   }} className="rounded bg-gray-900 px-4 py-2 hover:bg-gray-600">
                 View / Edit Items
               </button>
 
               {/* Right */}
               <div className="flex gap-3">
-                <button onClick={ () => setSelectedWarehouse(null) }
+                <button onClick={ (e) => 
+                {
+                  e.stopPropagation()
+                  setViewingDescription(null) 
+                  setSelectedWarehouse(null)
+                }}
                   className="rounded bg-gray-700 px-4 py-2 hover:bg-gray-600">
                   Close
                 </button>

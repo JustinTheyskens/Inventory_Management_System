@@ -1,14 +1,13 @@
-import type { Item } from "./Item"
+
 
 export interface Warehouse {
-    id: string
-    name: string
-    location: string
-
-    maxItems: number
-    
-    currentItems: number
+  id: string
+  name: string
+  location: string
+  maxItems: number
+  currentItems: number
 }
+
 
 /*
 Add New Warehouse:
