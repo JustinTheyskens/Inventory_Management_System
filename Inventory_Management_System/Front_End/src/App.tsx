@@ -8,6 +8,8 @@ import WarehouseForm from './Components/WarehouseForm'
 import ItemForm from './Components/ItemForm'
 import type { ItemFormData } from './Objects/ItemFormData'
 import TransferForm from './Components/TransferForm'
+import type {InventoryRow} from './Objects/InventoryRow'
+
 
 function App() {
 
@@ -25,7 +27,8 @@ function App() {
   const [addingItem, setAddingItem] = useState(false) // adding item state / not addting item state.
   const [itemSearch, setItemSearch] = useState('')
   const [viewingDescription, setViewingDescription] = useState<Item | null>(null)
-  const [warehouseItems, setWarehouseItems] = useState<Item[]>([])
+  const [warehouseItems, setWarehouseItems] = useState<InventoryRow[]>([])
+  // const [warehouseItems, setWarehouseItems] = useState<Item[]>([])
   const [itemsLoading, setItemsLoading] = useState(false)
   const [itemsError, setItemsError] = useState<string | null>(null)
   const [transferringItem, setTransferringItem] = useState<Item | null>(null)
@@ -96,28 +99,42 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
   const handleDeleteItem = async (item: Item) => {
     if (!selectedWarehouse) return
 
+    const confirmed = window.confirm(`Remove ${item.name} from this warehouse?`)
+
+    if (!confirmed) return
+
     try {
-      const res = await fetch('http://localhost:3000/api/inventory/remove', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          itemId: item._id,
-          warehouseId: selectedWarehouse._id,
-          amount: item.quantity, // or full quantity
-        }),
-      })
+      const payload = {
+        itemId: item._id,
+        warehouseId: selectedWarehouse._id,
+        amount: item.quantity,
+      }
+
+      console.log('DELETE INVENTORY PAYLOAD:', payload)
+
+      const res = await fetch('http://localhost:3000/api/inventory/remove',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }
+      )
 
       if (!res.ok) {
         throw new Error('Failed to remove item')
       }
 
-      // Refresh inventory UI
-      await loadWarehouseItems(selectedWarehouse._id)
-    } catch (err) {
-      console.error(err)
+      setWarehouseItems(prev =>
+        prev.filter(i => i._id !== item._id)
+      )
+    } 
+    catch (error) 
+    {
+      console.error(error)
       alert('Failed to remove item from warehouse')
     }
   }
+
 
   const handleDeleteWarehouse = async (_id: string) => {
     const confirmed = window.confirm('Are you sure you want to delete this warehouse?')
@@ -281,9 +298,10 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
       if (!Array.isArray(data)) {
         throw new Error('Inventory response is not an array')
       }
+      
+      //const items = normalizeInventoryToItems(data)
+      setWarehouseItems(data)
 
-      const items = normalizeInventoryToItems(data)
-      setWarehouseItems(items)
     } catch (err: any) {
       console.error('Failed to load inventory:', err)
       setWarehouseItems([])
@@ -547,34 +565,39 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
                     </p>
                   ) : (
                     <ul className="space-y-2">
-                      {warehouseItems.map(item => (
+                      {warehouseItems.map(row => (
                         <li
-                          key={`${item._id}-${selectedWarehouse?._id}`}
+                          key={`${row.item._id}-${selectedWarehouse?._id}`}
                           className="flex items-center justify-between rounded border p-2">
 
                           <div>
-                            <p className="font-medium">{item.name}</p>
+                            <p className="font-medium">{row.item.name}</p>
                             <p className="text-xs text-gray-500">
-                              SKU: {item.sku} • Category: {item.category}
+                              SKU: {row.item.sku} • Category: {row.item.category}
                             </p>
                           </div>
 
                           <button
-                            onClick={() => setViewingDescription(item)}
+                            onClick={() => setViewingDescription(row.item)}
                             className="rounded bg-blue-100 px-2 py-1 text-sm text-blue-700 hover:bg-blue-200">
                             Description
                           </button>
 
                           <button
-                            onClick={() => setEditingItem(item)}
+                            onClick={() => setEditingItem(row.item)}
                             className="rounded bg-gray-200 px-2 py-1 text-sm hover:bg-gray-300">
                             Edit
                           </button>
 
                           <button
-                          onClick={() => setTransferringItem(item)}
+                          onClick={() => setTransferringItem(row.item)}
                           className="rounded bg-yellow-200 px-2 py-1 text-sm hover:bg-yellow-300">
                           Transfer
+                        </button>
+                        <button
+                          onClick={() => handleDeleteItem(row.item)}
+                          className="rounded bg-red-500 px-2 py-1 text-sm hover:bg-red- 700">
+                          Delete
                         </button>
                         </li>
                       ))}
