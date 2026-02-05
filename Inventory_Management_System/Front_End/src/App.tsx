@@ -29,7 +29,7 @@ function App() {
   const [itemsLoading, setItemsLoading] = useState(false)
   const [itemsError, setItemsError] = useState<string | null>(null)
 
-
+  // useEffects
   useEffect(() => {
   fetch('http://localhost:3000/api/warehouses')
     .then(res => res.json())
@@ -44,10 +44,19 @@ function App() {
     }, [])
     // on mount only
 
+    useEffect(() =>{
+      if(!viewingItems) return
+      if (!selectedWarehouse?.id) return
+
+      console.log('Loading inventory for:', selectedWarehouse.id)
+
+      loadWarehouseItems(selectedWarehouse.id)
+    }, [viewingItems, selectedWarehouse])
+    // on viewing item & selected warehouse
 
 
   {/* Handlers */}
-  const handleDeleteWarehouse = async (id: number) => {
+  const handleDeleteWarehouse = async (id: string) => {
     const confirmed = window.confirm('Are you sure you want to delete this warehouse?')
 
     if (!confirmed) 
@@ -90,17 +99,54 @@ function App() {
     )
   }
 
-  const loadWarehouseItems = async (warehouseId: number) => {
-  setItemsLoading(true)
+//   const loadWarehouseItems = async (warehouseId: number) => {
 
-  const res = await fetch(
-    `http://localhost:3000/api/warehouses/${warehouseId}/items`
-  )
-  const data = await res.json()
+//     console.log('Loading items for warehouse:', warehouseId)
 
-  setWarehouseItems(data)
-  setItemsLoading(false)
+//     setItemsLoading(true)
+
+//     const res = await fetch(`http://localhost:3000/api/inventory/warehouse/${warehouseId}/`)
+
+//   const data = await res.json()
+
+//   console.log('ITEM RESPONSE:', data)
+
+//   setWarehouseItems(data)
+//   setItemsLoading(false)
+// }
+
+const loadWarehouseItems = async (warehouseId: string) => {
+  try 
+  {
+    setItemsLoading(true)
+
+    console.log('Loading items for warehouse:', warehouseId)
+
+    const res = await fetch(`http://localhost:3000/api/inventory/warehouse/${warehouseId}`)
+
+    if (!res.ok) 
+    {
+      throw new Error(`HTTP ${res.status}`)
+    }
+
+    const data = await res.json()
+
+    if (!Array.isArray(data)) 
+    {
+      console.error('Inventory response not array:', data)
+      setWarehouseItems([])
+      return
+    }
+
+      setWarehouseItems(data)
+    } catch (err) {
+      console.error('Failed to load inventory:', err)
+      setWarehouseItems([])
+    } finally {
+      setItemsLoading(false)
+    }
 }
+
 
 
   const handleUpdateItem = async (updatedItem : Item) => {
@@ -196,12 +242,12 @@ function App() {
           warehouse.name.toString() // Search by ID
           .includes(warehouseSearch)).map((warehouse) => (
             <div
-              key={warehouse.id}
+              key={warehouse.name}
               onClick={ () => setSelectedWarehouse(warehouse) }
               className="cursor-pointer rounded-xl border border-gray-700 bg-gray-800 p-6 shadow-lg transition hover:scale-[1.02] hover:border-blue-500 hover:shadow-blue-500/20">
               {/* Header */}
               <h2 className="mb-4 text-xl font-semibold text-blue-400">
-                Warehouse #{warehouse.name}
+                Warehouse {warehouse.name}
               </h2>
 
               {/* Details */}
@@ -232,12 +278,13 @@ function App() {
       {selectedWarehouse && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
-          onClick={ () => setSelectedWarehouse(null) }>
+          onClick={ () => setSelectedWarehouse(null) }
+          >
           <div
             className="w-full max-w-lg rounded-xl bg-gray-800 p-8 shadow-2xl"
             onClick={ (e) => e.stopPropagation() }>
             <h2 className="mb-4 text-2xl font-bold text-blue-400">
-              Warehouse #{selectedWarehouse.id}
+              Warehouse {selectedWarehouse.name}
             </h2>
 
             {/* Warehouse Properties */}
@@ -262,11 +309,11 @@ function App() {
 
             {/* Items View Overlay */}
             {viewingItems && (
-              <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60"
-                onClick={ () => setViewingItems(false) }>
-                <div
-                  className="w-full max-w-xl rounded-xl bg-gray-800 p-6 shadow-2xl"
-                  onClick={ (e) => e.stopPropagation() }>
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+                  onClick={() => setSelectedWarehouse(null)} // this is the dakr background?
+                  >
+                <div className="w-full max-w-lg rounded-xl bg-gray-800 p-8 shadow-2xl"
+                  onClick={(e) => e.stopPropagation()}>
                   <h2 className="mb-4 text-xl font-bold text-blue-400">
                     Items — Warehouse #{selectedWarehouse.id}
                   </h2>
@@ -304,7 +351,7 @@ function App() {
                     <ul className="space-y-2">
                       {warehouseItems.map(item => (
                         <li
-                          key={item.id}
+                          key={`${item.id}-${selectedWarehouse?.id}`}
                           className="flex items-center justify-between rounded border p-2"
                         >
                           <div>
@@ -420,10 +467,12 @@ function App() {
 
               {/* Left Side: */}
               <button
-                onClick={() => {
+                onClick={() => { 
                   if (!selectedWarehouse) return
-                  loadWarehouseItems(selectedWarehouse.id)
-                  setViewingItems(true) }} className="rounded bg-gray-900 px-4 py-2 hover:bg-gray-600">
+
+                  setViewingItems(true)
+                   //loadWarehouseItems(selectedWarehouse.id)
+                  }} className="rounded bg-gray-900 px-4 py-2 hover:bg-gray-600">
                 View / Edit Items
               </button>
 
