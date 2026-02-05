@@ -120,10 +120,12 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
         }
       )
 
-      if (!res.ok) {
+      if (!res.ok) 
+      {
         throw new Error('Failed to remove item')
       }
 
+      // update UI
       setWarehouseItems(prev =>
         prev.filter(i => i._id !== item._id)
       )
