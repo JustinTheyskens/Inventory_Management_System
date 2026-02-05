@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { Item } from '../Objects/Item'
 import type { ItemFormData } from '../Objects/ItemFormData'
+import App from '../App'
 
 interface ItemFormProps {
   item?: Item
@@ -123,6 +124,11 @@ export default function ItemForm({
         >
           Save
         </button>
+
+        {/* <button onClick={ () => handleDeleteItem(selectedWarehouse._id) }
+        className="rounded bg-red-600 px-4 py-2 font-semibold text-white hover:bg-red-500">
+        Delete
+        </button> */}
       </div>
     </form>
   )

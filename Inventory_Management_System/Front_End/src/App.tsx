@@ -29,6 +29,7 @@ function App() {
   const [itemsLoading, setItemsLoading] = useState(false)
   const [itemsError, setItemsError] = useState<string | null>(null)
   const [transferringItem, setTransferringItem] = useState<Item | null>(null)
+  const [deletingItem, setDeletingItem] = useState<Item | null>(null)
 
 // for for normalizing all back end data
 type AnyObj = Record<string, any>
@@ -92,6 +93,32 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
 
 
   {/* Handlers */}
+  const handleDeleteItem = async (item: Item) => {
+    if (!selectedWarehouse) return
+
+    try {
+      const res = await fetch('http://localhost:3000/api/inventory/remove', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          itemId: item._id,
+          warehouseId: selectedWarehouse._id,
+          amount: item.quantity, // or full quantity
+        }),
+      })
+
+      if (!res.ok) {
+        throw new Error('Failed to remove item')
+      }
+
+      // Refresh inventory UI
+      await loadWarehouseItems(selectedWarehouse._id)
+    } catch (err) {
+      console.error(err)
+      alert('Failed to remove item from warehouse')
+    }
+  }
+
   const handleDeleteWarehouse = async (_id: string) => {
     const confirmed = window.confirm('Are you sure you want to delete this warehouse?')
 
@@ -123,7 +150,7 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
         // get error data
         const errorData = await res.json()
 
-        // duplicate name? 
+        // duplicate name? tell user
         if (res.status === 409 || errorData?.message?.includes('duplicate')) 
         {
           alert('Warehouse name already exists. Choose a different name.')
@@ -174,8 +201,9 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
         //throw new Error('Failed to create item.')
 
         const errorData = await itemRes.json()
+        
 
-        // duplicate SKU?
+        // duplicate SKU? tell user
         if (itemRes.status === 409 || errorData?.message?.includes('duplicate')) 
         {
           alert('Item with that SKU already exists. Use a different SKU.')
@@ -183,7 +211,7 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
         }
 
         // generic error
-        alert('Failed to create item. Please check your input.')
+        alert('Failed to create item. Check your input.')
         return
       }
 
@@ -210,8 +238,21 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
         }
       )
 
-      if (!inventoryRes.ok) {
-        throw new Error('Failed to create inventory')
+      if (!inventoryRes.ok) 
+      {
+        //throw new Error('Failed to create inventory')
+
+          const errorData = await inventoryRes.json()
+
+        if (inventoryRes.status === 409 &&
+          errorData?.message?.toLowerCase().includes('capacity')) 
+        {
+          alert('Warehouse is at maximum capacity. Cannot add more items.')
+          return
+        }
+
+        alert('Failed to add item to warehouse.')
+        return
       }
 
       await loadWarehouseItems(selectedWarehouse._id)
@@ -301,7 +342,19 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
 
         if (!res.ok) 
         {
-          throw new Error('Transfer failed')
+          //throw new Error('Transfer failed')
+
+          // handle item transfer to over capacity warehouse
+          const errorData = await res.json()
+
+          if (res.status === 409 && errorData?.message?.toLowerCase().includes('capacity')) 
+          {
+            alert('Destination warehouse is at maximum capacity.')
+            return
+          }
+
+          alert('Failed to transfer item.')
+          return
         }
 
         // update warehouse
@@ -523,8 +576,6 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
                           className="rounded bg-yellow-200 px-2 py-1 text-sm hover:bg-yellow-300">
                           Transfer
                         </button>
-
-
                         </li>
                       ))}
                     </ul>
