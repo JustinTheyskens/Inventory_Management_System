@@ -27,34 +27,30 @@ function App() {
   const [itemsLoading, setItemsLoading] = useState(false)
   const [itemsError, setItemsError] = useState<string | null>(null)
 
-
+// for for normalizing all back end data
 type AnyObj = Record<string, any>
 
 const normalizeWarehouse = (w: AnyObj): Warehouse => ({
-  // required fields (make sure they exist)
+  // fields
   name: String(w.name ?? ''),
   location: String(w.location ?? ''),
 
-  // normalized fields
+  // normalized fields--
   id: String(w.id ?? w._id),
   maxItems: Number(w.maxItems ?? w.max_capacity ?? 0),
   currentItems: Number(w.currentItems ?? w.current_capacity ?? 0),
-
-  // include any optional fields you might have
-  // items: w.items ?? [],
 })
 
-
 const normalizeInventoryToItems = (data: any[]): Item[] => {
-  // Handles BOTH shapes:
-  // 1) Flattened items [{id,name,sku,...,quantity}]
-  // 2) Inventory rows [{item:{_id,name,sku,...}, quantity}]
+  //   REMINDER: this does two things:
+  // - flattened items: [{id,name,sku,...,quantity}]
+  // - inventory rows: [{item:{_id,name,sku,...}, quantity}]
   return data.map((row: any) => {
-    const itemDoc = row.item ?? row // if row.item exists, use it; else assume row IS the item
+    const itemDoc = row.item ?? row // if row.item exists, use it, otherwise assume this ROW IS the item!!
     return {
       ...itemDoc,
-      id: itemDoc.id ?? itemDoc._id,        // ✅ critical
-      quantity: row.quantity ?? itemDoc.quantity ?? 0, // quantity from inventory row
+      id: itemDoc.id ?? itemDoc._id,        
+      quantity: row.quantity ?? itemDoc.quantity ?? 0, // take quantity from inventory
     }
   })
 }
@@ -69,7 +65,7 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
         console.log('WAREHOUSE RESPONSE:', data)
 
         if (!Array.isArray(data)) {
-          console.error('Expected warehouse array, got:', data)
+          console.error('Expected warehouse array:', data)
           setWarehouses([])
           return
         }
@@ -106,51 +102,90 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
     setViewingItems(false)
   }
 
-  const handleAddItem = async (newItem : Item) => {
+  // const handleAddItem = async (newItem : Item) => {
 
+  //   if (!selectedWarehouse) 
+  //     return
+
+  //   const res = await fetch(`http://localhost:5000/api/warehouses/${selectedWarehouse.id}/items`,
+  //   {
+  //     method: 'POST',
+  //     headers: { 'Content-Type': 'application/json' },
+  //     body: JSON.stringify(newItem),
+  //   })
+
+  //   const createdItem = await res.json();
+
+
+  //   // Update state
+  //   setWarehouses( prev => 
+  //     prev.map(warehouse => warehouse.id === selectedWarehouse.id ? 
+  //       { ...warehouse } : warehouse
+  //     )
+  //   )
+
+  //   // Keep selected warehouse in sync
+  //     // setSelectedWarehouse(prev => prev
+  //     // ? { ...prev, items: [...prev.items, createdItem] }: prev
+  //      setSelectedWarehouse(prev => prev
+  //     ? { ...prev }: prev     
+  //   )
+  // }
+
+    const handleAddItem = async (itemData: {
+    name: string
+    sku: string
+    category: string
+    description?: string
+    quantity: number }) => {
+      
     if (!selectedWarehouse) 
       return
 
-    const res = await fetch(`http://localhost:5000/api/warehouses/${selectedWarehouse.id}/items`,
+    try 
     {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newItem),
-    })
+      const itemRes = await fetch('http://localhost:3000/api/items', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        //body: JSON.stringify(itemData),
+        body: JSON.stringify({
+        name: itemData.name,
+        sku: itemData.sku,
+        category: itemData.category,
+        description: itemData.description,
+        })
+      })
 
-    const createdItem = await res.json();
+      if (!itemRes.ok) {
+        throw new Error('Failed to create item')
+      }
 
+      const createdItem = await itemRes.json()
 
-    // Update state
-    setWarehouses( prev => 
-      prev.map(warehouse => warehouse.id === selectedWarehouse.id ? 
-        { ...warehouse } : warehouse
+      const inventoryRes = await fetch(
+        'http://localhost:3000/api/inventory/add',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            item: createdItem._id,
+            warehouse: selectedWarehouse.id,
+            quantity: itemData.quantity,
+          }),
+        }
       )
-    )
 
-    // Keep selected warehouse in sync
-      // setSelectedWarehouse(prev => prev
-      // ? { ...prev, items: [...prev.items, createdItem] }: prev
-       setSelectedWarehouse(prev => prev
-      ? { ...prev }: prev     
-    )
+      if (!inventoryRes.ok) {
+        throw new Error('Failed to create inventory')
+      }
+
+      await loadWarehouseItems(selectedWarehouse.id)
+
+    } catch (err) {
+      console.error('Add item failed:', err)
+    }
   }
 
-//   const loadWarehouseItems = async (warehouseId: number) => {
-
-//     console.log('Loading items for warehouse:', warehouseId)
-
-//     setItemsLoading(true)
-
-//     const res = await fetch(`http://localhost:3000/api/inventory/warehouse/${warehouseId}/`)
-
-//   const data = await res.json()
-
-//   console.log('ITEM RESPONSE:', data)
-
-//   setWarehouseItems(data)
-//   setItemsLoading(false)
-// }
   const loadWarehouseItems = async (warehouseId: string) => {
     try {
       setItemsLoading(true)
