@@ -7,6 +7,7 @@ import type { Item } from './Objects/Item'
 import WarehouseForm from './Components/WarehouseForm'
 import ItemForm from './Components/ItemForm'
 import type { ItemFormData } from './Objects/ItemFormData'
+import TransferForm from './Components/TransferForm'
 
 function App() {
 
@@ -27,6 +28,7 @@ function App() {
   const [warehouseItems, setWarehouseItems] = useState<Item[]>([])
   const [itemsLoading, setItemsLoading] = useState(false)
   const [itemsError, setItemsError] = useState<string | null>(null)
+  const [transferringItem, setTransferringItem] = useState<Item | null>(null)
 
 // for for normalizing all back end data
 type AnyObj = Record<string, any>
@@ -253,7 +255,38 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
         ...prev, 
       } : prev )
   }
-  
+
+  const handleTransferItem = async ({itemId, fromWarehouseId, toWarehouseId, amount} : 
+    {itemId: string, fromWarehouseId: string, toWarehouseId: string, amount: number}) => {
+      try
+      {
+        const res = await fetch('http://localhost:3000/api/inventory/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            itemId,
+            fromWarehouseId,
+            toWarehouseId,
+            amount,
+          }),
+        })
+
+        if (!res.ok) 
+        {
+          throw new Error('Transfer failed')
+        }
+
+        // update warehouse
+        await loadWarehouseItems(fromWarehouseId)
+
+        setTransferringItem(null)
+      }
+      catch (error)
+      {
+        console.error(error)
+        alert('Failed to transfer item')
+      }
+    } 
 
   {/* Views */}
   if (view === 'create') {
@@ -455,6 +488,13 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
                             Edit
                           </button>
 
+                          <button
+                          onClick={() => setTransferringItem(item)}
+                          className="rounded bg-yellow-200 px-2 py-1 text-sm hover:bg-yellow-300">
+                          Transfer
+                        </button>
+
+
                         </li>
                       ))}
                     </ul>
@@ -479,6 +519,31 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
                             await handleAddItem(item)
                             setAddingItem(false)
                           }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                    {/* Item Transfer Overlay */}
+                    {transferringItem && selectedWarehouse && (
+                    <div
+                      className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60"
+                      onClick={() => setTransferringItem(null)}
+                    >
+                      <div
+                        className="w-full max-w-md rounded-xl bg-gray-800 p-6 shadow-2xl"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <h3 className="mb-4 text-lg font-bold text-blue-400">
+                          Transfer Item
+                        </h3>
+
+                        <TransferForm
+                          item={transferringItem}
+                          fromWarehouse={selectedWarehouse}
+                          warehouses={warehouses}
+                          onCancel={() => setTransferringItem(null)}
+                          onTransfer={handleTransferItem}
                         />
                       </div>
                     </div>
