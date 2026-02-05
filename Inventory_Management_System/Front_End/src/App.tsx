@@ -25,11 +25,21 @@ function App() {
   const [addingItem, setAddingItem] = useState(false) // adding item state / not addting item state.
   const [itemSearch, setItemSearch] = useState('')
   const [viewingDescription, setViewingDescription] = useState<Item | null>(null)
+  const [warehouseItems, setWarehouseItems] = useState<Item[]>([])
+  const [itemsLoading, setItemsLoading] = useState(false)
+  const [itemsError, setItemsError] = useState<string | null>(null)
+
 
   useEffect(() => {
-  fetch('http://localhost:5000/api/warehouses')
+  fetch('http://localhost:3000/api/warehouses')
     .then(res => res.json())
-    .then(data => setWarehouses(data))
+    .then(data => 
+      {
+        console.log('WAREHOUSE RESPONSE:', data),
+      
+        !Array.isArray(data) ?         setWarehouses([]) :
+
+      setWarehouses(data)})
     .catch(err => console.error(err))
     }, [])
     // on mount only
@@ -68,15 +78,30 @@ function App() {
     // Update state
     setWarehouses( prev => 
       prev.map(warehouse => warehouse.id === selectedWarehouse.id ? 
-        { ...warehouse, items: [...warehouse.items, createdItem] } : warehouse
+        { ...warehouse } : warehouse
       )
     )
 
     // Keep selected warehouse in sync
-      setSelectedWarehouse(prev => prev
-      ? { ...prev, items: [...prev.items, createdItem] }: prev
+      // setSelectedWarehouse(prev => prev
+      // ? { ...prev, items: [...prev.items, createdItem] }: prev
+       setSelectedWarehouse(prev => prev
+      ? { ...prev }: prev     
     )
   }
+
+  const loadWarehouseItems = async (warehouseId: number) => {
+  setItemsLoading(true)
+
+  const res = await fetch(
+    `http://localhost:3000/api/warehouses/${warehouseId}/items`
+  )
+  const data = await res.json()
+
+  setWarehouseItems(data)
+  setItemsLoading(false)
+}
+
 
   const handleUpdateItem = async (updatedItem : Item) => {
     if (!selectedWarehouse)
@@ -93,11 +118,11 @@ function App() {
       // sync warehouses
     setWarehouses(prev =>
     prev.map(warehouse => warehouse.id === selectedWarehouse.id ? {
-        ...warehouse, items: warehouse.items.map(item => item.id === updatedItem.id ? updatedItem : item), 
+        ...warehouse, 
       } : warehouse ))
 
       setSelectedWarehouse(prev => prev ? {
-        ...prev, items: prev.items.map(item => item.id === updatedItem.id ? updatedItem : item), 
+        ...prev, 
       } : prev )
   }
   
@@ -176,7 +201,7 @@ function App() {
               className="cursor-pointer rounded-xl border border-gray-700 bg-gray-800 p-6 shadow-lg transition hover:scale-[1.02] hover:border-blue-500 hover:shadow-blue-500/20">
               {/* Header */}
               <h2 className="mb-4 text-xl font-semibold text-blue-400">
-                Warehouse #{warehouse.id}
+                Warehouse #{warehouse.name}
               </h2>
 
               {/* Details */}
@@ -195,7 +220,7 @@ function App() {
                   <span className="font-medium text-gray-400">
                     Current Inventory:
                   </span>{' '}
-                  {warehouse.items.length}
+                  {warehouse.currentItems}
                 </p>
               </div>
             </div>
@@ -231,7 +256,7 @@ function App() {
                 <span className="font-medium text-gray-400">
                   Current Inventory:
                 </span>{' '}
-                {selectedWarehouse.items.length}
+                {selectedWarehouse.currentItems}
               </p>
             </div>
 
@@ -267,56 +292,40 @@ function App() {
 
                   {/* Item List */}
                   <div className="h-64 overflow-y-auto rounded bg-white p-4 text-gray-900">
-                    {selectedWarehouse.items.length === 0 ? (
-                      <p className="text-sm text-gray-500">
-                        No items in this warehouse.
-                      </p>
-                      ) : ( 
-                      <ul className="space-y-2">
-                        {selectedWarehouse.items.filter((item) => // Item Filter starts here //
-                          item.name.toLowerCase().includes(itemSearch.toLowerCase()) ||
-                          item.sku.toLowerCase().includes(itemSearch.toLocaleLowerCase()) ||
-                          item.category.toLowerCase().includes(itemSearch.toLowerCase())
-                          ).map((item) => ( // Item Filter ends here //
-                          <li
-                            key={item.id}
-                            className="grid grid-cols-4 items-center gap-4 rounded border p-3 text-sm">
-                            {/* Name */}
-                            <div className="font-medium">
-                              {item.name}
-                            </div>
+                  {itemsLoading ? (
+                    <p className="text-sm text-gray-500">Loading items…</p>
+                  ) : itemsError ? (
+                    <p className="text-sm text-red-500">{itemsError}</p>
+                  ) : warehouseItems.length === 0 ? (
+                    <p className="text-sm text-gray-500">
+                      No items in this warehouse.
+                    </p>
+                  ) : (
+                    <ul className="space-y-2">
+                      {warehouseItems.map(item => (
+                        <li
+                          key={item.id}
+                          className="flex items-center justify-between rounded border p-2"
+                        >
+                          <div>
+                            <p className="font-medium">{item.name}</p>
+                            <p className="text-xs text-gray-500">
+                              SKU: {item.sku} • Category: {item.category}
+                            </p>
+                          </div>
 
-                            {/* SKU */}
-                            <div className="text-gray-600">
-                              {item.sku}
-                            </div>
+                          <button
+                            onClick={() => setEditingItem(item)}
+                            className="rounded bg-gray-200 px-2 py-1 text-sm hover:bg-gray-300"
+                          >
+                            Edit
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
 
-                            {/* Category */}
-                            <div className="text-gray-600">
-                              {item.category}
-                            </div>
-
-                            {/* Actions */}
-                            <div className="flex justify-end gap-2">
-                              <button
-                                onClick={() => setViewingDescription(item)}
-                                className="rounded bg-gray-100 px-2 py-1 text-xs hover:bg-gray-200">
-                                Description
-                              </button>
-
-                              <button
-                                onClick={() => setEditingItem(item)}
-                                className="rounded bg-gray-200 px-2 py-1 text-xs hover:bg-gray-300"
-                              >
-                                Edit
-                              </button>
-                            </div>
-                          </li>
-
-                        ))}
-                      </ul>
-                    )}
-                  </div>
 
                   {/* Show Items Overlay */}
                   {addingItem && (
@@ -410,8 +419,11 @@ function App() {
             <div className="mt-6 flex justify-between">
 
               {/* Left Side: */}
-              <button onClick={ () => setViewingItems(true) }
-                className="rounded bg-gray-900 px-4 py-2 hover:bg-gray-600">
+              <button
+                onClick={() => {
+                  if (!selectedWarehouse) return
+                  loadWarehouseItems(selectedWarehouse.id)
+                  setViewingItems(true) }} className="rounded bg-gray-900 px-4 py-2 hover:bg-gray-600">
                 View / Edit Items
               </button>
 

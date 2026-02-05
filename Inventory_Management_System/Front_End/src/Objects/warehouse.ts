@@ -2,12 +2,12 @@ import type { Item } from "./Item"
 
 export interface Warehouse {
     id: number
-
+    name: string
     location: string
 
     maxItems: number
     
-    items: Item[]
+    currentItems: number
 }
 
 /*

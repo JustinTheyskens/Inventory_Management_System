@@ -11,15 +11,18 @@ export default function WarehouseForm({
   onCancel,
 }: WarehouseFormProps) {
   const [location, setLocation] = useState('')
+  const [name, setName] = useState('')
   const [maxItems, setMaxItems] = useState<number>(0)
+  const [currentItems, setCurrentItems] = useState<number>(0)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
     onSave({
       location,
+      name,
       maxItems,
-      items: [],
+      currentItems,
     })
   }
 
