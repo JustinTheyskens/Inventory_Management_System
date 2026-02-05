@@ -7,10 +7,7 @@ export const WarehouseService = {
         const warehouses = await WarehouseRepo.findAll();
         const avgInventory = findAverageInventory(warehouses);
 
-        return { // list of warhouses & thier avg inventory count.
-            warehouses,
-            avgInventory
-        }
+        return warehouses
     },
 
     getById: async (id) => {
