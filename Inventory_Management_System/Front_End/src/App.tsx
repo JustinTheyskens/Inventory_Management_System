@@ -377,12 +377,13 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
                   {warehouse.maxItems}
                 </p>
 
-                <p>
+                {/* TODO: add this back in later - 
+                  <p> 
                   <span className="font-medium text-gray-400">
                     Current Inventory:
                   </span>{' '}
                   {warehouse.currentItems}
-                </p>
+                </p> */}
               </div>
             </div>
           ))}
