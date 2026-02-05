@@ -54,6 +54,8 @@ export const ItemController = {
         {
             const item = await ItemService.create(req.body);
 
+            console.log('CREATE ITEM BODY:', req.body)
+
             return res.status(201).json(item);
         } 
         catch (error) 
