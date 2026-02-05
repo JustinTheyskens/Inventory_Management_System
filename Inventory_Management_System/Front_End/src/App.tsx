@@ -1,18 +1,19 @@
 import { useState } from 'react'
+import { useEffect } from 'react'
 import './App.css'
 
-import { dummyData } from './Objects/warehouses'
 import type { Warehouse } from './Objects/warehouse'
 import type { Item } from './Objects/Item'
 import WarehouseForm from './Components/WarehouseForm'
-import EditItemForm from './Components/EditItemForm'
 import ItemForm from './Components/ItemForm'
+import type { ItemFormData } from './Objects/ItemFormData'
 
 function App() {
 
-    // [const, function ] = useState< 'option' | 'option' >(default) -OR useState(boolean)
+  // [const, function ] = useState< 'option' | 'option' >(default) -OR useState(boolean)
   {/* States */}
   // Warehouses
+  const [warehouses, setWarehouses] = useState<Warehouse[]>([])
   const [selectedWarehouse, setSelectedWarehouse] = useState<Warehouse | null>(null)
   const [view, setView] = useState<'list' | 'create'>('list') // warehouse list state / create warehouse state.
   const [warehouseSearch, setWarehouseSearch ] = useState('') // warehouse search term.
@@ -23,19 +24,233 @@ function App() {
   const [addingItem, setAddingItem] = useState(false) // adding item state / not addting item state.
   const [itemSearch, setItemSearch] = useState('')
   const [viewingDescription, setViewingDescription] = useState<Item | null>(null)
+  const [warehouseItems, setWarehouseItems] = useState<Item[]>([])
+  const [itemsLoading, setItemsLoading] = useState(false)
+  const [itemsError, setItemsError] = useState<string | null>(null)
+
+// for for normalizing all back end data
+type AnyObj = Record<string, any>
+
+const normalizeWarehouse = (w: AnyObj): Warehouse => ({
+  // fields
+  name: String(w.name ?? ''),
+  location: String(w.location ?? ''),
+
+  // normalized fields--
+  _id: String(w._id ?? w._id),
+  maxItems: Number(w.maxItems ?? w.max_capacity ?? 0),
+  currentItems: Number(w.currentItems ?? w.current_capacity ?? 0),
+})
+
+const normalizeInventoryToItems = (data: any[]): Item[] => {
+  //   REMINDER: this does two things:
+  // - flattened items: [{id,name,sku,...,quantity}]
+  // - inventory rows: [{item:{_id,name,sku,...}, quantity}]
+  return data.map((row: any) => {
+    const itemDoc = row.item ?? row // if row.item exists, use it, otherwise assume this ROW IS the item!!
+    return {
+      ...itemDoc,
+      id: itemDoc.id ?? itemDoc._id,        
+      quantity: row.quantity ?? itemDoc.quantity ?? 0, // take quantity from inventory
+    }
+  })
+}
+
+  
+
+  // useEffects
+  useEffect(() => {
+    fetch('http://localhost:3000/api/warehouses')
+      .then((res) => res.json())
+      .then((data) => {
+        console.log('WAREHOUSE RESPONSE:', data)
+
+        if (!Array.isArray(data)) {
+          console.error('Expected warehouse array:', data)
+          setWarehouses([])
+          return
+        }
+
+        setWarehouses(data.map(normalizeWarehouse))
+      })
+    .catch((error) => console.error('Failed to load warehouses:', error))
+  }, [])
+
+    // on mount only
+
+    useEffect(() =>{
+      if(!viewingItems) return
+      if (!selectedWarehouse?._id) return
+
+      console.log('Loading inventory for:', selectedWarehouse._id)
+
+      loadWarehouseItems(selectedWarehouse._id)
+    }, [viewingItems, selectedWarehouse])
+    // on viewing item & selected warehouse
 
 
   {/* Handlers */}
-  const handleDeleteWarehouse = (id: number) => {
-    const confirmed = window.confirm(
-      'Are you sure you want to delete this warehouse?'
-    )
+  const handleDeleteWarehouse = async (_id: string) => {
+    const confirmed = window.confirm('Are you sure you want to delete this warehouse?')
 
-    if (!confirmed) return
+    if (!confirmed) 
+      return
 
-    console.log('Delete warehouse:', id)
-    setSelectedWarehouse(null)
+    // console.log('Delete warehouse:', id)
+    await fetch(`http://localhost:5000/api/warehouses/${_id}`, {method: 'DELETE', })
+
+    setWarehouses(prev => prev.filter(w => w._id !== _id))
+    setViewingItems(false)
   }
+
+  // const handleAddItem = async (newItem : Item) => {
+
+  //   if (!selectedWarehouse) 
+  //     return
+
+  //   const res = await fetch(`http://localhost:5000/api/warehouses/${selectedWarehouse.id}/items`,
+  //   {
+  //     method: 'POST',
+  //     headers: { 'Content-Type': 'application/json' },
+  //     body: JSON.stringify(newItem),
+  //   })
+
+  //   const createdItem = await res.json();
+
+
+  //   // Update state
+  //   setWarehouses( prev => 
+  //     prev.map(warehouse => warehouse.id === selectedWarehouse.id ? 
+  //       { ...warehouse } : warehouse
+  //     )
+  //   )
+
+  //   // Keep selected warehouse in sync
+  //     // setSelectedWarehouse(prev => prev
+  //     // ? { ...prev, items: [...prev.items, createdItem] }: prev
+  //      setSelectedWarehouse(prev => prev
+  //     ? { ...prev }: prev     
+  //   )
+  // }
+
+    const handleAddItem = async (itemData: ItemFormData) => {
+      
+    if (!selectedWarehouse) 
+      return
+
+    try 
+    {
+      // create a back end item
+      const itemRes = await fetch('http://localhost:3000/api/items', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+        name: itemData.name,
+        sku: itemData.sku,
+        category: itemData.category,
+        description: itemData.description,
+        })
+      })
+
+      if (!itemRes.ok) {
+        throw new Error('Failed to create item')
+      }
+
+      // create a back end inventory
+      const createdItem = await itemRes.json()
+
+      // is this the correct info?
+      console.log('INVENTORY PAYLOAD:', {
+        item: createdItem._id,
+        warehouse: selectedWarehouse._id,
+        quantity: itemData.quantity,
+      })
+
+      const inventoryRes = await fetch(
+        'http://localhost:3000/api/inventory/add',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            item: createdItem._id,
+            warehouse: selectedWarehouse._id,
+            quantity: itemData.quantity,
+          }),
+        }
+      )
+
+      if (!inventoryRes.ok) {
+        throw new Error('Failed to create inventory')
+      }
+
+      await loadWarehouseItems(selectedWarehouse._id)
+
+    } catch (err) {
+      console.error('Add item failed:', err)
+    }
+  }
+
+  const loadWarehouseItems = async (warehouseId: string) => {
+    try {
+      setItemsLoading(true)
+      setItemsError(null)
+
+      console.log('Loading inventory for warehouseId:', warehouseId)
+
+      const res = await fetch(`http://localhost:3000/api/inventory/warehouse/${warehouseId}`)
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+
+      const data = await res.json()
+      console.log('INVENTORY RESPONSE:', data)
+
+      if (!Array.isArray(data)) {
+        throw new Error('Inventory response is not an array')
+      }
+
+      const items = normalizeInventoryToItems(data)
+      setWarehouseItems(items)
+    } catch (err: any) {
+      console.error('Failed to load inventory:', err)
+      setWarehouseItems([])
+      setItemsError(err?.message ?? 'Failed to load inventory')
+    } finally {
+      setItemsLoading(false)
+    }
+  }
+
+
+  const handleUpdateItem = async (
+    itemId : string,
+    data: Omit<ItemFormData, 'quantity'>
+    ) => {
+    if (!selectedWarehouse)
+      return
+
+      // fetch from server
+      await fetch(`http://localhost:5000/api/warehouses/${selectedWarehouse._id}/items/${itemId}`,
+      {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: data.name,
+          sku: data.sku,
+          category: data.category,
+          description: data.description,
+        }),
+      })
+
+      // sync warehouses
+      setWarehouses(prev =>
+      prev.map(warehouse => warehouse._id === selectedWarehouse._id ? {
+        ...warehouse, 
+      } : warehouse ))
+
+      setSelectedWarehouse(prev => prev ? {
+        ...prev, 
+      } : prev )
+  }
+  
 
   {/* Views */}
   if (view === 'create') {
@@ -99,19 +314,27 @@ function App() {
       {/* Warehouse Grid */}
       <div className="mx-auto max-w-6xl">
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {dummyData.filter((warehouse) => // New Filter Added //
+          {warehouses.filter((warehouse) => // New Filter Added //
           warehouse.location // Search by location
           .toLowerCase() // my New Filter ends at .map //
           .includes(warehouseSearch.toLowerCase()) || 
-          warehouse.id.toString() // Search by ID
+          warehouse.name.toString() // Search by ID
           .includes(warehouseSearch)).map((warehouse) => (
             <div
-              key={warehouse.id}
-              onClick={ () => setSelectedWarehouse(warehouse) }
+              key={warehouse.name}
+              onClick={ () => 
+                {
+                  setSelectedWarehouse(warehouse)
+                  setViewingItems(false)
+                  setAddingItem(false)
+                  setViewingDescription(null)
+                  setEditingItem(null)
+                } 
+              }
               className="cursor-pointer rounded-xl border border-gray-700 bg-gray-800 p-6 shadow-lg transition hover:scale-[1.02] hover:border-blue-500 hover:shadow-blue-500/20">
               {/* Header */}
               <h2 className="mb-4 text-xl font-semibold text-blue-400">
-                Warehouse #{warehouse.id}
+                Warehouse {warehouse.name}
               </h2>
 
               {/* Details */}
@@ -130,7 +353,7 @@ function App() {
                   <span className="font-medium text-gray-400">
                     Current Inventory:
                   </span>{' '}
-                  {warehouse.items.length}
+                  {warehouse.currentItems}
                 </p>
               </div>
             </div>
@@ -142,12 +365,13 @@ function App() {
       {selectedWarehouse && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
-          onClick={ () => setSelectedWarehouse(null) }>
+          onClick={ () => setViewingItems(false) }
+          >
           <div
             className="w-full max-w-lg rounded-xl bg-gray-800 p-8 shadow-2xl"
             onClick={ (e) => e.stopPropagation() }>
             <h2 className="mb-4 text-2xl font-bold text-blue-400">
-              Warehouse #{selectedWarehouse.id}
+              Warehouse {selectedWarehouse.name}
             </h2>
 
             {/* Warehouse Properties */}
@@ -166,19 +390,19 @@ function App() {
                 <span className="font-medium text-gray-400">
                   Current Inventory:
                 </span>{' '}
-                {selectedWarehouse.items.length}
+                {selectedWarehouse.currentItems}
               </p>
             </div>
 
             {/* Items View Overlay */}
             {viewingItems && (
-              <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60"
-                onClick={ () => setViewingItems(false) }>
-                <div
-                  className="w-full max-w-xl rounded-xl bg-gray-800 p-6 shadow-2xl"
-                  onClick={ (e) => e.stopPropagation() }>
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+                  onClick={() => setViewingItems(false)} // this is the dakr background?
+                  >
+                <div className="w-full max-w-lg rounded-xl bg-gray-800 p-8 shadow-2xl"
+                  onClick={(e) => e.stopPropagation()}>
                   <h2 className="mb-4 text-xl font-bold text-blue-400">
-                    Items — Warehouse #{selectedWarehouse.id}
+                    Items — Warehouse {selectedWarehouse.name}
                   </h2>
 
                   {/* Item Search Bar */}
@@ -202,56 +426,39 @@ function App() {
 
                   {/* Item List */}
                   <div className="h-64 overflow-y-auto rounded bg-white p-4 text-gray-900">
-                    {selectedWarehouse.items.length === 0 ? (
-                      <p className="text-sm text-gray-500">
-                        No items in this warehouse.
-                      </p>
-                      ) : ( 
-                      <ul className="space-y-2">
-                        {selectedWarehouse.items.filter((item) => // Item Filter starts here //
-                          item.name.toLowerCase().includes(itemSearch.toLowerCase()) ||
-                          item.sku.toLowerCase().includes(itemSearch.toLocaleLowerCase()) ||
-                          item.category.toLowerCase().includes(itemSearch.toLowerCase())
-                          ).map((item) => ( // Item Filter ends here //
-                          <li
-                            key={item.id}
-                            className="grid grid-cols-4 items-center gap-4 rounded border p-3 text-sm">
-                            {/* Name */}
-                            <div className="font-medium">
-                              {item.name}
-                            </div>
+                  {itemsLoading ? (
+                    <p className="text-sm text-gray-500">Loading items…</p>
+                  ) : itemsError ? (
+                    <p className="text-sm text-red-500">{itemsError}</p>
+                  ) : warehouseItems.length === 0 ? (
+                    <p className="text-sm text-gray-500">
+                      No items in this warehouse.
+                    </p>
+                  ) : (
+                    <ul className="space-y-2">
+                      {warehouseItems.map(item => (
+                        <li
+                          key={`${item._id}-${selectedWarehouse?._id}`}
+                          className="flex items-center justify-between rounded border p-2"
+                        >
+                          <div>
+                            <p className="font-medium">{item.name}</p>
+                            <p className="text-xs text-gray-500">
+                              SKU: {item.sku} • Category: {item.category}
+                            </p>
+                          </div>
 
-                            {/* SKU */}
-                            <div className="text-gray-600">
-                              {item.sku}
-                            </div>
+                          <button
+                            onClick={() => setEditingItem(item)}
+                            className="rounded bg-gray-200 px-2 py-1 text-sm hover:bg-gray-300">
+                            Edit
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
 
-                            {/* Category */}
-                            <div className="text-gray-600">
-                              {item.category}
-                            </div>
-
-                            {/* Actions */}
-                            <div className="flex justify-end gap-2">
-                              <button
-                                onClick={() => setViewingDescription(item)}
-                                className="rounded bg-gray-100 px-2 py-1 text-xs hover:bg-gray-200">
-                                Description
-                              </button>
-
-                              <button
-                                onClick={() => setEditingItem(item)}
-                                className="rounded bg-gray-200 px-2 py-1 text-xs hover:bg-gray-300"
-                              >
-                                Edit
-                              </button>
-                            </div>
-                          </li>
-
-                        ))}
-                      </ul>
-                    )}
-                  </div>
 
                   {/* Show Items Overlay */}
                   {addingItem && (
@@ -266,13 +473,8 @@ function App() {
 
                         <ItemForm
                           onCancel={() => setAddingItem(false)}
-                          onSave={(newItem) => {
-                            console.log('Add item:', newItem)
-
-                            // later:
-                            // update selectedWarehouse.items
-                            // call backend API
-
+                            onSave={async (item) => {
+                            await handleAddItem(item)
                             setAddingItem(false)
                           }}
                         />
@@ -298,7 +500,15 @@ function App() {
 
                         <div className="flex justify-end">
                           <button
-                            onClick={() => setViewingDescription(null)}
+                            onClick={() => 
+                              {
+                                setSelectedWarehouse(null)
+                                setViewingItems(false)
+                                setAddingItem(false)
+                                setViewingDescription(null)
+                                setEditingItem(null)
+                              }
+                            }
                             className="rounded bg-gray-700 px-4 py-2 hover:bg-gray-600">
                             Close
                           </button>
@@ -310,7 +520,13 @@ function App() {
                   {/* Item Buttons */}
                   <div className="mt-6 flex justify-between">
                     <button
-                      onClick={ () => setAddingItem(true) }
+                      onClick={ () => 
+                        {
+                          setAddingItem(true)
+                          setViewingDescription(null)
+                          setEditingItem(null)
+                        } 
+                      }
                       className="rounded bg-gray-900 px-4 py-2 text-white hover:bg-gray-800">
                       Add Item
                     </button>
@@ -334,18 +550,18 @@ function App() {
                   <h3 className="mb-4 text-lg font-bold text-blue-400">
                     Edit Item
                   </h3>
-
-                  <EditItemForm
+                  <ItemForm
                     item={editingItem}
-                    onCancel={ () => setEditingItem(null) }
-                    onSave={ (updatedItem) => { console.log('Save item:', updatedItem)
-
-                      // TODO:
-                      // update item in warehouse state
-                      // then call backend API
-
+                    onCancel={() => setEditingItem(null)}
+                    onSave={async (data) => {
+                      await handleUpdateItem(editingItem._id, {
+                        name: data.name,
+                        sku: data.sku,
+                        category: data.category,
+                        description: data.description,
+                      })
                       setEditingItem(null)
-                    } }
+                    }}
                   />
                 </div>
               </div>
@@ -355,19 +571,32 @@ function App() {
             <div className="mt-6 flex justify-between">
 
               {/* Left Side: */}
-              <button onClick={ () => setViewingItems(true) }
-                className="rounded bg-gray-900 px-4 py-2 hover:bg-gray-600">
+              <button
+                onClick={() => { 
+                  if (!selectedWarehouse) return
+
+                  setViewingItems(true)
+                  setAddingItem(false)
+                  setViewingDescription(null)
+                  setEditingItem(null)
+
+                  }} className="rounded bg-gray-900 px-4 py-2 hover:bg-gray-600">
                 View / Edit Items
               </button>
 
               {/* Right */}
               <div className="flex gap-3">
-                <button onClick={ () => setSelectedWarehouse(null) }
+                <button onClick={ (e) => 
+                {
+                  e.stopPropagation()
+                  setViewingDescription(null) 
+                  setSelectedWarehouse(null)
+                }}
                   className="rounded bg-gray-700 px-4 py-2 hover:bg-gray-600">
                   Close
                 </button>
 
-                <button onClick={ () => handleDeleteWarehouse(selectedWarehouse.id) }
+                <button onClick={ () => handleDeleteWarehouse(selectedWarehouse._id) }
                   className="rounded bg-red-600 px-4 py-2 font-semibold text-white hover:bg-red-500">
                   Delete
                 </button>

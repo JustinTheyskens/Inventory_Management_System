@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { Warehouse } from '../Objects/warehouse'
 
 interface WarehouseFormProps {
-  onSave: (warehouse: Warehouse) => void
+  onSave: (warehouse: Omit<Warehouse, '_id'>) => void
   onCancel: () => void
 }
 
@@ -11,19 +11,19 @@ export default function WarehouseForm({
   onCancel,
 }: WarehouseFormProps) {
   const [location, setLocation] = useState('')
+  const [name, setName] = useState('')
   const [maxItems, setMaxItems] = useState<number>(0)
+  const [currentItems, setCurrentItems] = useState<number>(0)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
-    const newWarehouse: Warehouse = {
-      id: Date.now(), // temp client ID
+    onSave({
       location,
+      name,
       maxItems,
-      items: [],
-    }
-
-    onSave(newWarehouse)
+      currentItems,
+    })
   }
 
   return (
@@ -62,13 +62,15 @@ export default function WarehouseForm({
         <button
           type="button"
           onClick={onCancel}
-          className="rounded bg-gray-700 px-4 py-2 hover:bg-gray-600">
+          className="rounded bg-gray-700 px-4 py-2 hover:bg-gray-600"
+        >
           Cancel
         </button>
 
         <button
           type="submit"
-          className="rounded bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-500">
+          className="rounded bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-500"
+        >
           Add Warehouse
         </button>
       </div>

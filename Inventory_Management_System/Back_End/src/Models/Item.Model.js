@@ -17,4 +17,4 @@ const itemSchema = new mongoose.Schema({
     description: String
 });
 
-export const Item = mongoose.model('item', itemSchema);
+export const Item = mongoose.model('Item', itemSchema);

@@ -13,7 +13,13 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #111827;
 }
+html, body, #root {
+  min-height: 100%;
+  background-color: #111827; /* Tailwind gray-900 */
+}
+
 
 a {
   font-weight: 500;

@@ -1,8 +1,8 @@
 export interface Item {
-    id: number
+    _id: string
     name: string
 
-    quantity?: number
+    quantity: number
     sku: string
     category: string
     description?: string

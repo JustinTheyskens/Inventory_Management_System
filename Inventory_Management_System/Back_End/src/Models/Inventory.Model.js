@@ -1,4 +1,6 @@
 import mongoose from "mongoose";
+import {Item} from '../Models/Item.Model.js';
+import { Warehouse } from "../Models/Warehouse.Model.js";
 
 const inventorySchema = new mongoose.Schema({
 
@@ -33,4 +35,4 @@ inventorySchema.index(
     }
 );
 
-export const Inventory = mongoose.model('inventory', inventorySchema);
+export const Inventory = mongoose.model('Inventory', inventorySchema);

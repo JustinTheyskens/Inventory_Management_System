@@ -4,7 +4,6 @@ export const InventoryController = {
     getByWarehouse: async (req, res) => {
         try
         {
-
             const {warehouseId} = req.params;
 
             const inventory = await InventoryService.getByWarehouse(warehouseId);
@@ -20,9 +19,17 @@ export const InventoryController = {
     add: async (req, res) => {
         try
         {
-            const {itemId, warehouseId, amount} = req.body;
+            console.log('CREATE INVENTORY BODY:', req.body)
 
-            const result = await InventoryService.add(itemId, warehouseId, Number(amount));
+            const {item, warehouse, quantity} = req.body;
+
+            // check this bad boy for any missing data
+            if (!item || !warehouse || quantity == null) 
+            {
+                return res.status(400).json({ message: 'Missing required fields' })
+            }
+            
+            const result = await InventoryService.add(item, warehouse, Number(quantity));
 
             return res.status(201).json(result);
         } 
