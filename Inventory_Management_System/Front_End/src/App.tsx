@@ -193,7 +193,7 @@ function App() {
           warehouse.location // Search by location
           .toLowerCase() // my New Filter ends at .map //
           .includes(warehouseSearch.toLowerCase()) || 
-          warehouse.id.toString() // Search by ID
+          warehouse.name.toString() // Search by ID
           .includes(warehouseSearch)).map((warehouse) => (
             <div
               key={warehouse.id}
