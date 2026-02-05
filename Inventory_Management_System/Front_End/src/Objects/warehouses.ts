@@ -3,26 +3,26 @@ import type { Warehouse } from "./warehouse";
 
 export const dummyData : Warehouse[] = [
     {
-        id: 1,
+        _id: "1",
+        name: "NY-01",
         location: "New York, NY",
         maxItems: 500,
-        items: [
-            { id: 1, name: 'Hammer', sku: 'ABC123'},
-            { id: 2, name: 'Wrench', sku:'ABC456' }
-        ]
+        currentItems: 0
     },
 
     {
-        id: 2,
+        _id: "2",
+        name: "MA-01",
         location: "Boston, MA",
         maxItems: 1000,
-        items: []
+        currentItems: 0
     },
 
     {
-        id: 3,
+        _id: "3",
+        name: "CA-01",
         location: "San Francisco, CA",
         maxItems: 1500,
-        items: []
+        currentItems: 0
     }
 ]

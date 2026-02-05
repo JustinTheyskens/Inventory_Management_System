@@ -103,37 +103,37 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
     setViewingItems(false)
   }
 
-  // const handleAddItem = async (newItem : Item) => {
+  const handleAddWarehouse = async (warehouseData: {name: string, location: string, max_capacity: number}) =>
+  {
+    try
+    {
+      const res = await fetch('http://localhost:3000/api/warehouses', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json' },
+        body: JSON.stringify(warehouseData)
+      })
 
-  //   if (!selectedWarehouse) 
-  //     return
+      if (!res.ok)
+      {
+        throw new Error('Failed to create Warehouse.')
+      }
 
-  //   const res = await fetch(`http://localhost:5000/api/warehouses/${selectedWarehouse.id}/items`,
-  //   {
-  //     method: 'POST',
-  //     headers: { 'Content-Type': 'application/json' },
-  //     body: JSON.stringify(newItem),
-  //   })
+      const createdWarehouse = await res.json();
 
-  //   const createdItem = await res.json();
+      // add to list
+      setWarehouses(prev => [...prev, createdWarehouse])
+
+      setView('list')
+    }
+    catch (error)
+    {
+      console.error('Add item failed:', error)
+    }
+  }
 
 
-  //   // Update state
-  //   setWarehouses( prev => 
-  //     prev.map(warehouse => warehouse.id === selectedWarehouse.id ? 
-  //       { ...warehouse } : warehouse
-  //     )
-  //   )
 
-  //   // Keep selected warehouse in sync
-  //     // setSelectedWarehouse(prev => prev
-  //     // ? { ...prev, items: [...prev.items, createdItem] }: prev
-  //      setSelectedWarehouse(prev => prev
-  //     ? { ...prev }: prev     
-  //   )
-  // }
-
-    const handleAddItem = async (itemData: ItemFormData) => {
+  const handleAddItem = async (itemData: ItemFormData) => {
       
     if (!selectedWarehouse) 
       return
@@ -152,8 +152,9 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
         })
       })
 
-      if (!itemRes.ok) {
-        throw new Error('Failed to create item')
+      if (!itemRes.ok) 
+      {
+        throw new Error('Failed to create item.')
       }
 
       // create a back end inventory
@@ -185,8 +186,10 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
 
       await loadWarehouseItems(selectedWarehouse._id)
 
-    } catch (err) {
-      console.error('Add item failed:', err)
+    } 
+    catch (error) 
+    {
+      console.error('Add item failed:', error)
     }
   }
 
@@ -261,15 +264,7 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
       <div className="max-w-md rounded-lg bg-gray-800 p-6">
         <WarehouseForm
           onCancel={() => setView('list')}
-          onSave={(warehouse) => {
-            console.log('Add warehouse:', warehouse)
-
-            // DOTO:
-            // setWarehouses(prev => [prev, warehouse])
-            // call backend
-
-            setView('list')
-          }}
+          onSave={handleAddWarehouse}
         />
       </div>
       </main>

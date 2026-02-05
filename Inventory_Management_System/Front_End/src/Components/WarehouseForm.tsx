@@ -2,7 +2,12 @@ import { useState } from 'react'
 import type { Warehouse } from '../Objects/warehouse'
 
 interface WarehouseFormProps {
-  onSave: (warehouse: Omit<Warehouse, '_id'>) => void
+  onSave: (warehouse: {
+    name: string,
+    location: string,
+    max_capacity: number
+    
+  }) => void // Omit<Warehouse, '_id'>
   onCancel: () => void
 }
 
@@ -21,13 +26,27 @@ export default function WarehouseForm({
     onSave({
       location,
       name,
-      maxItems,
-      currentItems,
+      max_capacity: maxItems,
+      //currentItems,
     })
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Name */}
+      <div>
+        <label className="mb-1 block text-sm font-medium text-gray-300">
+          Name
+        </label>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="w-full rounded border border-gray-600 bg-white px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500"
+          required
+        />
+      </div>
+
       {/* Location */}
       <div>
         <label className="mb-1 block text-sm font-medium text-gray-300">
@@ -53,8 +72,7 @@ export default function WarehouseForm({
           value={maxItems}
           onChange={(e) => setMaxItems(Number(e.target.value))}
           className="w-full rounded border border-gray-600 bg-white px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500"
-          required
-        />
+          required />
       </div>
 
       {/* Actions */}
@@ -62,15 +80,13 @@ export default function WarehouseForm({
         <button
           type="button"
           onClick={onCancel}
-          className="rounded bg-gray-700 px-4 py-2 hover:bg-gray-600"
-        >
+          className="rounded bg-gray-700 px-4 py-2 hover:bg-gray-600">
           Cancel
         </button>
 
         <button
           type="submit"
-          className="rounded bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-500"
-        >
+          className="rounded bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-500">
           Add Warehouse
         </button>
       </div>
