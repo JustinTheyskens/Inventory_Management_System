@@ -171,7 +171,20 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
 
       if (!itemRes.ok) 
       {
-        throw new Error('Failed to create item.')
+        //throw new Error('Failed to create item.')
+
+        const errorData = await itemRes.json()
+
+        // duplicate SKU?
+        if (itemRes.status === 409 || errorData?.message?.includes('duplicate')) 
+        {
+          alert('Item with that SKU already exists. Use a different SKU.')
+          return
+        }
+
+        // generic error
+        alert('Failed to create item. Please check your input.')
+        return
       }
 
       // create a back end inventory
