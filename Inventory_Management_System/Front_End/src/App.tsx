@@ -37,7 +37,7 @@ const normalizeWarehouse = (w: AnyObj): Warehouse => ({
   location: String(w.location ?? ''),
 
   // normalized fields--
-  id: String(w.id ?? w._id),
+  _id: String(w._id ?? w._id),
   maxItems: Number(w.maxItems ?? w.max_capacity ?? 0),
   currentItems: Number(w.currentItems ?? w.current_capacity ?? 0),
 })
@@ -80,26 +80,26 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
 
     useEffect(() =>{
       if(!viewingItems) return
-      if (!selectedWarehouse?.id) return
+      if (!selectedWarehouse?._id) return
 
-      console.log('Loading inventory for:', selectedWarehouse.id)
+      console.log('Loading inventory for:', selectedWarehouse._id)
 
-      loadWarehouseItems(selectedWarehouse.id)
+      loadWarehouseItems(selectedWarehouse._id)
     }, [viewingItems, selectedWarehouse])
     // on viewing item & selected warehouse
 
 
   {/* Handlers */}
-  const handleDeleteWarehouse = async (id: string) => {
+  const handleDeleteWarehouse = async (_id: string) => {
     const confirmed = window.confirm('Are you sure you want to delete this warehouse?')
 
     if (!confirmed) 
       return
 
     // console.log('Delete warehouse:', id)
-    await fetch(`http://localhost:5000/api/warehouses/${id}`, {method: 'DELETE', })
+    await fetch(`http://localhost:5000/api/warehouses/${_id}`, {method: 'DELETE', })
 
-    setWarehouses(prev => prev.filter(w => w.id !== id))
+    setWarehouses(prev => prev.filter(w => w._id !== _id))
     setViewingItems(false)
   }
 
@@ -140,6 +140,7 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
 
     try 
     {
+      // create a back end item
       const itemRes = await fetch('http://localhost:3000/api/items', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -155,7 +156,15 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
         throw new Error('Failed to create item')
       }
 
+      // create a back end inventory
       const createdItem = await itemRes.json()
+
+      // is this the correct info?
+      console.log('INVENTORY PAYLOAD:', {
+        item: createdItem._id,
+        warehouse: selectedWarehouse._id,
+        quantity: itemData.quantity,
+      })
 
       const inventoryRes = await fetch(
         'http://localhost:3000/api/inventory/add',
@@ -164,7 +173,7 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             item: createdItem._id,
-            warehouse: selectedWarehouse.id,
+            warehouse: selectedWarehouse._id,
             quantity: itemData.quantity,
           }),
         }
@@ -174,7 +183,7 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
         throw new Error('Failed to create inventory')
       }
 
-      await loadWarehouseItems(selectedWarehouse.id)
+      await loadWarehouseItems(selectedWarehouse._id)
 
     } catch (err) {
       console.error('Add item failed:', err)
@@ -219,21 +228,21 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
       return
 
       // fetch from server
-      await fetch(`http://localhost:5000/api/warehouses/${selectedWarehouse.id}/items/${itemId}`,
+      await fetch(`http://localhost:5000/api/warehouses/${selectedWarehouse._id}/items/${itemId}`,
       {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-        name: data.name,
-        sku: data.sku,
-        category: data.category,
-        description: data.description,
-      }),
+          name: data.name,
+          sku: data.sku,
+          category: data.category,
+          description: data.description,
+        }),
       })
 
       // sync warehouses
       setWarehouses(prev =>
-      prev.map(warehouse => warehouse.id === selectedWarehouse.id ? {
+      prev.map(warehouse => warehouse._id === selectedWarehouse._id ? {
         ...warehouse, 
       } : warehouse ))
 
@@ -393,7 +402,7 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
                 <div className="w-full max-w-lg rounded-xl bg-gray-800 p-8 shadow-2xl"
                   onClick={(e) => e.stopPropagation()}>
                   <h2 className="mb-4 text-xl font-bold text-blue-400">
-                    Items — Warehouse #{selectedWarehouse.id}
+                    Items — Warehouse {selectedWarehouse.name}
                   </h2>
 
                   {/* Item Search Bar */}
@@ -429,7 +438,7 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
                     <ul className="space-y-2">
                       {warehouseItems.map(item => (
                         <li
-                          key={`${item.id}-${selectedWarehouse?.id}`}
+                          key={`${item._id}-${selectedWarehouse?._id}`}
                           className="flex items-center justify-between rounded border p-2"
                         >
                           <div>
@@ -545,7 +554,7 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
                     item={editingItem}
                     onCancel={() => setEditingItem(null)}
                     onSave={async (data) => {
-                      await handleUpdateItem(editingItem.id, {
+                      await handleUpdateItem(editingItem._id, {
                         name: data.name,
                         sku: data.sku,
                         category: data.category,
@@ -587,7 +596,7 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
                   Close
                 </button>
 
-                <button onClick={ () => handleDeleteWarehouse(selectedWarehouse.id) }
+                <button onClick={ () => handleDeleteWarehouse(selectedWarehouse._id) }
                   className="rounded bg-red-600 px-4 py-2 font-semibold text-white hover:bg-red-500">
                   Delete
                 </button>

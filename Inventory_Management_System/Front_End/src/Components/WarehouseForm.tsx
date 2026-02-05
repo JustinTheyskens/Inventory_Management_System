@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { Warehouse } from '../Objects/warehouse'
 
 interface WarehouseFormProps {
-  onSave: (warehouse: Omit<Warehouse, 'id'>) => void
+  onSave: (warehouse: Omit<Warehouse, '_id'>) => void
   onCancel: () => void
 }
 
