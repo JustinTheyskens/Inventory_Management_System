@@ -40,8 +40,8 @@ const normalizeWarehouse = (w: AnyObj): Warehouse => ({
 
   // normalized fields--
   _id: String(w._id ?? w._id),
-  maxItems: Number(w.maxItems ?? w.max_capacity ?? 0),
-  currentItems: Number(w.currentItems ?? w.current_capacity ?? 0),
+  max_capacity: Number(w.max_capacity ?? w.max_capacity ?? 0),
+  current_capacity: Number(w.currentItems ?? w.current_capacity ?? 0),
 })
 
 const normalizeInventoryToItems = (data: any[]): Item[] => {
@@ -99,9 +99,10 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
       return
 
     // console.log('Delete warehouse:', id)
-    await fetch(`http://localhost:5000/api/warehouses/${_id}`, {method: 'DELETE', })
+    await fetch(`http://localhost:3000/api/warehouses/${_id}`, {method: 'DELETE', })
 
     setWarehouses(prev => prev.filter(w => w._id !== _id))
+    setSelectedWarehouse(null)
     setViewingItems(false)
   }
 
@@ -117,7 +118,21 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
 
       if (!res.ok)
       {
-        throw new Error('Failed to create Warehouse.')
+        //throw new Error('Failed to create Warehouse.')
+
+        // get error data
+        const errorData = await res.json()
+
+        // duplicate name? 
+        if (res.status === 409 || errorData?.message?.includes('duplicate')) 
+        {
+          alert('Warehouse name already exists. Choose a different name.')
+          return
+        }
+
+        // generic failure
+        alert('Failed to create warehouse. Check input fields again.')
+        return
       }
 
       const createdWarehouse = await res.json();
@@ -357,6 +372,7 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
                   setAddingItem(false)
                   setViewingDescription(null)
                   setEditingItem(null)
+                  loadWarehouseItems(warehouse._id)
                 } 
               }
               className="cursor-pointer rounded-xl border border-gray-700 bg-gray-800 p-6 shadow-lg transition hover:scale-[1.02] hover:border-blue-500 hover:shadow-blue-500/20">
@@ -374,7 +390,7 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
 
                 <p>
                   <span className="font-medium text-gray-400">Capacity:</span>{' '}
-                  {warehouse.maxItems}
+                  {warehouse.max_capacity}
                 </p>
 
                 {/* TODO: add this back in later - 
@@ -412,14 +428,14 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
 
               <p>
                 <span className="font-medium text-gray-400">Capacity:</span>{' '}
-                {selectedWarehouse.maxItems}
+                {selectedWarehouse.max_capacity}
               </p>
 
               <p>
                 <span className="font-medium text-gray-400">
                   Current Inventory:
                 </span>{' '}
-                {selectedWarehouse.currentItems}
+                {itemsLoading ? "loading..." : warehouseItems.length}
               </p>
             </div>
 
