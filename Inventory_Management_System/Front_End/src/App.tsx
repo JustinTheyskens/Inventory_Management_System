@@ -417,12 +417,12 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
 
                   
                   {/* Item List Header */}
-                  <div className="mb-2 grid grid-cols-4 gap-4 text-xs font-semibold uppercase text-gray-500">
+                  {/*<div className="mb-2 grid grid-cols-4 gap-4 text-xs font-semibold uppercase text-gray-500">
                     <div>Name</div>
                     <div>SKU</div>
                     <div>Category</div>
                     <div className="text-right">Actions</div>
-                  </div>
+                  </div>*/ }
 
                   {/* Item List */}
                   <div className="h-64 overflow-y-auto rounded bg-white p-4 text-gray-900">
@@ -439,8 +439,8 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
                       {warehouseItems.map(item => (
                         <li
                           key={`${item._id}-${selectedWarehouse?._id}`}
-                          className="flex items-center justify-between rounded border p-2"
-                        >
+                          className="flex items-center justify-between rounded border p-2">
+
                           <div>
                             <p className="font-medium">{item.name}</p>
                             <p className="text-xs text-gray-500">
@@ -449,10 +449,17 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
                           </div>
 
                           <button
+                            onClick={() => setViewingDescription(item)}
+                            className="rounded bg-blue-100 px-2 py-1 text-sm text-blue-700 hover:bg-blue-200">
+                            Description
+                          </button>
+
+                          <button
                             onClick={() => setEditingItem(item)}
                             className="rounded bg-gray-200 px-2 py-1 text-sm hover:bg-gray-300">
                             Edit
                           </button>
+
                         </li>
                       ))}
                     </ul>
@@ -502,9 +509,6 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
                           <button
                             onClick={() => 
                               {
-                                setSelectedWarehouse(null)
-                                setViewingItems(false)
-                                setAddingItem(false)
                                 setViewingDescription(null)
                                 setEditingItem(null)
                               }
