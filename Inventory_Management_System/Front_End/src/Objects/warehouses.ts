@@ -6,23 +6,23 @@ export const dummyData : Warehouse[] = [
         _id: "1",
         name: "NY-01",
         location: "New York, NY",
-        maxItems: 500,
-        currentItems: 0
+        max_capacity: 500,
+        current_capacity: 0
     },
 
     {
         _id: "2",
         name: "MA-01",
         location: "Boston, MA",
-        maxItems: 1000,
-        currentItems: 0
+        max_capacity: 1000,
+        current_capacity: 0
     },
 
     {
         _id: "3",
         name: "CA-01",
         location: "San Francisco, CA",
-        maxItems: 1500,
-        currentItems: 0
+        max_capacity: 1500,
+        current_capacity: 0
     }
 ]

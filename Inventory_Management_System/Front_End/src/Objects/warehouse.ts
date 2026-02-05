@@ -4,8 +4,8 @@ export interface Warehouse {
   _id: string
   name: string
   location: string
-  maxItems: number
-  currentItems: number
+  max_capacity: number
+  current_capacity: number
 }
 
 
