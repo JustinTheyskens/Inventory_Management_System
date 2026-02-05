@@ -6,6 +6,7 @@ import type { Warehouse } from './Objects/warehouse'
 import type { Item } from './Objects/Item'
 import WarehouseForm from './Components/WarehouseForm'
 import ItemForm from './Components/ItemForm'
+import type { ItemFormData } from './Objects/ItemFormData'
 
 function App() {
 
@@ -132,12 +133,7 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
   //   )
   // }
 
-    const handleAddItem = async (itemData: {
-    name: string
-    sku: string
-    category: string
-    description?: string
-    quantity: number }) => {
+    const handleAddItem = async (itemData: ItemFormData) => {
       
     if (!selectedWarehouse) 
       return
@@ -147,7 +143,6 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
       const itemRes = await fetch('http://localhost:3000/api/items', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        //body: JSON.stringify(itemData),
         body: JSON.stringify({
         name: itemData.name,
         sku: itemData.sku,
@@ -216,23 +211,29 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
   }
 
 
-
-
-  const handleUpdateItem = async (updatedItem : Item) => {
+  const handleUpdateItem = async (
+    itemId : string,
+    data: Omit<ItemFormData, 'quantity'>
+    ) => {
     if (!selectedWarehouse)
       return
 
       // fetch from server
-      await fetch(`http://localhost:5000/api/warehouses/${selectedWarehouse.id}/items/${updatedItem.id}`,
+      await fetch(`http://localhost:5000/api/warehouses/${selectedWarehouse.id}/items/${itemId}`,
       {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedItem),
+        body: JSON.stringify({
+        name: data.name,
+        sku: data.sku,
+        category: data.category,
+        description: data.description,
+      }),
       })
 
       // sync warehouses
-    setWarehouses(prev =>
-    prev.map(warehouse => warehouse.id === selectedWarehouse.id ? {
+      setWarehouses(prev =>
+      prev.map(warehouse => warehouse.id === selectedWarehouse.id ? {
         ...warehouse, 
       } : warehouse ))
 
@@ -543,8 +544,13 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
                   <ItemForm
                     item={editingItem}
                     onCancel={() => setEditingItem(null)}
-                    onSave={async (item) => {
-                      await handleUpdateItem(item)
+                    onSave={async (data) => {
+                      await handleUpdateItem(editingItem.id, {
+                        name: data.name,
+                        sku: data.sku,
+                        category: data.category,
+                        description: data.description,
+                      })
                       setEditingItem(null)
                     }}
                   />

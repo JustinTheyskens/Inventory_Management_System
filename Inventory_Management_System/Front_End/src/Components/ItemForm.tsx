@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import type { Item } from '../Objects/Item'
+import type { ItemFormData } from '../Objects/ItemFormData'
 
 interface ItemFormProps {
   item?: Item
-  onSave: (item: Item) => void
+  onSave: (data: ItemFormData) => void
   onCancel: () => void
 }
 
@@ -22,12 +23,11 @@ export default function ItemForm({
     e.preventDefault()
 
   onSave({
-    id: item?.id ?? Date.now(),
     name,
-    quantity,
     sku,
     category,
     description: desc,
+    quantity
   })
 
   
