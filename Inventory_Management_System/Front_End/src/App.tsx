@@ -118,7 +118,21 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
 
       if (!res.ok)
       {
-        throw new Error('Failed to create Warehouse.')
+        //throw new Error('Failed to create Warehouse.')
+
+        // get error data
+        const errorData = await res.json()
+
+        // duplicate name? 
+        if (res.status === 409 || errorData?.message?.includes('duplicate')) 
+        {
+          alert('Warehouse name already exists. Choose a different name.')
+          return
+        }
+
+        // generic failure
+        alert('Failed to create warehouse. Check input fields again.')
+        return
       }
 
       const createdWarehouse = await res.json();
