@@ -299,7 +299,7 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
       return
 
       // fetch from server
-      await fetch(`http://localhost:5000/api/warehouses/${selectedWarehouse._id}/items/${itemId}`,
+      await fetch(`http://localhost:3000/api/items/${itemId}`,
       {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
