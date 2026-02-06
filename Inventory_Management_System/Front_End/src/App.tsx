@@ -145,8 +145,7 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
 
       if (!res.ok)
       {
-        //throw new Error('Failed to create Warehouse.')
-
+        
         // get error data
         const errorData = await res.json()
 
@@ -174,8 +173,6 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
       console.error('Add item failed:', error)
     }
   }
-
-
 
   const handleAddItem = async (itemData: ItemFormData) => {
       
