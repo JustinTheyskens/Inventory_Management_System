@@ -416,7 +416,7 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
       <div className="mb-6 flex justify-center">
         <input
           type="text"
-          placeholder="Search warehouses by location or ID..."
+          placeholder="Search warehouses..."
           value={warehouseSearch}
           onChange={(e) => setWarehouseSearch(e.target.value)}
           className="w-full max-w-md rounded border border-gray-600 bg-white px-4 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500"
@@ -576,7 +576,7 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
                           <button
                             onClick={() => setViewingDescription(item)}
                             className="rounded bg-blue-100 px-2 py-1 text-sm text-blue-700 hover:bg-blue-200">
-                            Description
+                            Info.
                           </button>
 
                           <button
@@ -659,6 +659,9 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
                         <p className="mb-4 text-sm text-gray-300">
                           {viewingDescription.description || 'No description provided.'}
                         </p>
+                        <p className="mb-4 text-sm text-gray-300">
+                          {`Quantity: ${viewingDescription.quantity} | SKU: ${viewingDescription.sku} | Category: ${viewingDescription.category}` || 'No description provided.'}
+                        </p>
 
                         <div className="flex justify-end">
                           <button
@@ -721,6 +724,11 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
                       })
                       setEditingItem(null)
                     }}
+                    onDelete={ async () =>
+                      {
+                        await handleDeleteItem(editingItem)
+                        setEditingItem(null)
+                      }}
                   />
                 </div>
               </div>
