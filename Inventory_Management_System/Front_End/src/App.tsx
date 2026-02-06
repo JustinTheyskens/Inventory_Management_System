@@ -8,6 +8,8 @@ import WarehouseForm from './Components/WarehouseForm'
 import ItemForm from './Components/ItemForm'
 import type { ItemFormData } from './Objects/ItemFormData'
 import TransferForm from './Components/TransferForm'
+import { toast } from 'react-hot-toast'
+
 
 function App() {
 
@@ -29,7 +31,6 @@ function App() {
   const [itemsLoading, setItemsLoading] = useState(false)
   const [itemsError, setItemsError] = useState<string | null>(null)
   const [transferringItem, setTransferringItem] = useState<Item | null>(null)
-  const [deletingItem, setDeletingItem] = useState<Item | null>(null)
 
 // for for normalizing all back end data
 type AnyObj = Record<string, any>
@@ -93,31 +94,35 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
 
 
   {/* Handlers */}
-  const handleDeleteItem = async (item: Item) => {
+    const handleDeleteItem = async (item: Item) => {
     if (!selectedWarehouse) return
 
-    try {
-      const res = await fetch('http://localhost:3000/api/inventory/remove', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          itemId: item._id,
-          warehouseId: selectedWarehouse._id,
-          amount: item.quantity, // or full quantity
-        }),
-      })
-
-      if (!res.ok) {
-        throw new Error('Failed to remove item')
-      }
-
-      // Refresh inventory UI
-      await loadWarehouseItems(selectedWarehouse._id)
-    } catch (err) {
-      console.error(err)
-      alert('Failed to remove item from warehouse')
+    const payload = {
+      itemId: item._id,
+      warehouseId: selectedWarehouse._id,
+      amount: 999999, // remove all
     }
+
+    console.log('DELETE INVENTORY PAYLOAD:', payload)
+
+    const res = await fetch('http://localhost:3000/api/inventory/remove', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+
+    if (!res.ok) {
+      throw new Error('Failed to remove item')
+    }
+
+    // Update UI (remove item from list)
+    setWarehouseItems(prev =>
+      prev.filter(i => i._id !== item._id)
+    )
+
+    setEditingItem(null)
   }
+
 
   const handleDeleteWarehouse = async (_id: string) => {
     const confirmed = window.confirm('Are you sure you want to delete this warehouse?')
@@ -168,6 +173,7 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
       setWarehouses(prev => [...prev, createdWarehouse])
 
       setView('list')
+      
     }
     catch (error)
     {
@@ -256,7 +262,7 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
       }
 
       await loadWarehouseItems(selectedWarehouse._id)
-
+      toast.success("Success!");
     } 
     catch (error) 
     {
@@ -293,7 +299,6 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
     }
   }
 
-
   const handleUpdateItem = async (
     itemId : string,
     data: Omit<ItemFormData, 'quantity'>
@@ -302,7 +307,7 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
       return
 
       // fetch from server
-      await fetch(`http://localhost:5000/api/warehouses/${selectedWarehouse._id}/items/${itemId}`,
+      await fetch(`http://localhost:3000/api/warehouses/${selectedWarehouse._id}/items/${itemId}`,
       {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -367,7 +372,7 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
         console.error(error)
         alert('Failed to transfer item')
       }
-    } 
+    }
 
   {/* Views */}
   if (view === 'create') {
@@ -525,16 +530,6 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
                     className="mb-4 w-full rounded border border-gray-600 bg-white px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500"
                   />
 
-
-                  
-                  {/* Item List Header */}
-                  {/*<div className="mb-2 grid grid-cols-4 gap-4 text-xs font-semibold uppercase text-gray-500">
-                    <div>Name</div>
-                    <div>SKU</div>
-                    <div>Category</div>
-                    <div className="text-right">Actions</div>
-                  </div>*/ }
-
                   {/* Item List */}
                   <div className="h-64 overflow-y-auto rounded bg-white p-4 text-gray-900">
                   {itemsLoading ? (
@@ -600,6 +595,11 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
                             await handleAddItem(item)
                             setAddingItem(false)
                           }}
+                          onDelete={() => 
+                          {
+                            handleDeleteItem
+                            toast.success("Item Deleted.")
+                          }}
                         />
                       </div>
                     </div>
@@ -644,6 +644,10 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
 
                         <p className="mb-4 text-sm text-gray-300">
                           {viewingDescription.description || 'No description provided.'}
+                        </p>
+
+                          <p className="mb-4 text-sm text-gray-300">
+                          {`Quantity: ${viewingDescription.quantity}`}
                         </p>
 
                         <div className="flex justify-end">
@@ -707,6 +711,7 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
                       })
                       setEditingItem(null)
                     }}
+                    onDelete={handleDeleteItem}
                   />
                 </div>
               </div>

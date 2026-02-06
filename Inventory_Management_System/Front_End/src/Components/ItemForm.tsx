@@ -7,12 +7,14 @@ interface ItemFormProps {
   item?: Item
   onSave: (data: ItemFormData) => void
   onCancel: () => void
+  onDelete?: (item: Item) => void
 }
 
 export default function ItemForm({
   item,
   onSave,
   onCancel,
+  onDelete,
 }: ItemFormProps) {
   const [name, setName] = useState(item?.name ?? '')
   const [quantity, setQty] = useState<number>(item?.quantity ?? 0)
@@ -30,8 +32,6 @@ export default function ItemForm({
     description: desc,
     quantity
   })
-
-  
 
   }
 
@@ -125,10 +125,17 @@ export default function ItemForm({
           Save
         </button>
 
-        {/* <button onClick={ () => handleDeleteItem(selectedWarehouse._id) }
+        <button type="button"
+        onClick={() => {
+          if (!window.confirm(`Delete ${item?.name} from this warehouse?`)) return
+          if (item) onDelete?.(item)
+
+            console.log('ItemForm props:', { item, onDelete })
+
+        }}
         className="rounded bg-red-600 px-4 py-2 font-semibold text-white hover:bg-red-500">
         Delete
-        </button> */}
+        </button>
       </div>
     </form>
   )
