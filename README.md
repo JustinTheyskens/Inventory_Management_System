@@ -1,12 +1,12 @@
-# Warehouse Inventory Management System
+# Warehouse Inventory Management System [WIMS]
 
 A full-stack **Inventory Management System** designed to give administrators complete control over warehouses and inventory across multiple locations. The system emphasizes **clarity, usability, and robust edge-case handling**, ensuring that warehouse capacity constraints and inventory integrity are always enforced.
 
-This project demonstrates industry-grade backend design with **Java + Spring Boot**, a relational data model using **PostgreSQL**, and a modern, intuitive **UI/UX** built with **React (or HTML/CSS/JS)**.
+This project demonstrates modern **MERN stack development**, featuring a scalable backend with **Node.js, Express, and MongoDB**, paired with a responsive and intuitive **React-based UI**.
 
 ---
 
-## Objective
+## Project Objective
 
 Develop a comprehensive inventory management solution that enables administrators to:
 
@@ -17,8 +17,6 @@ Develop a comprehensive inventory management solution that enables administrator
 - Interact with a clean, intuitive, and responsive UI  
 
 The system prioritizes **data integrity**, **user experience**, and **scalability**, while handling real-world edge cases such as duplicate items and warehouse capacity limits.
-
----
 
 ## Core Features
 
@@ -31,8 +29,6 @@ The system prioritizes **data integrity**, **user experience**, and **scalabilit
   - Update capacity, name, or location
 - **Delete Warehouses**
   - Includes confirmation dialogs to prevent accidental removal
-
----
 
 ### Inventory Management
 - **Add Inventory Items**
@@ -67,7 +63,6 @@ The system prioritizes **data integrity**, **user experience**, and **scalabilit
 | Invalid transfers | Prevented if destination capacity is insufficient |
 | Destructive actions | Confirmation dialogs required |
 
-
 ## Stretch Goals (Implemented / Planned)
 
 - **Capacity Alerts**
@@ -77,9 +72,10 @@ The system prioritizes **data integrity**, **user experience**, and **scalabilit
 - **Item Expiration Tracking**
   - Flag items nearing expiration for review
 
+
 ### Database Design (ERD)
 
-The system uses a normalized relational schema with a **junction table** to manage inventory across multiple warehouses.
+Although implemented in **MongoDB**, the system follows a **relational-style schema design** to maintain data integrity and clarity using references between collections.
 
 ```mermaid
 erDiagram
@@ -87,7 +83,7 @@ erDiagram
     ITEM ||--o{ INVENTORY : stored_as
 
     WAREHOUSE {
-        int id PK
+        ObjectId id PK
         string name
         string location
         int max_capacity
@@ -95,7 +91,7 @@ erDiagram
     }
 
     ITEM {
-        int id PK
+        ObjectId id PK
         string name
         string sku
         string category
@@ -103,7 +99,7 @@ erDiagram
     }
 
     INVENTORY {
-        int warehouse_id FK
-        int item_id FK
+        ObjectId warehouse_id FK
+        ObjectId item_id FK
         int quantity
     }
