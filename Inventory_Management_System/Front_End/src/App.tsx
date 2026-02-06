@@ -364,7 +364,24 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
         console.error(error)
         alert('Failed to transfer item')
       }
-    } 
+    }
+
+    // Item filter
+    const filteredWarehouseItems = warehouseItems.filter(item => {
+    const term = itemSearch.trim().toLowerCase()
+
+    if (!term) return true
+
+    const name = item.name?.toLowerCase() ?? ''
+    const sku = item.sku?.toLowerCase() ?? ''
+    const category = item.category?.toLowerCase() ?? ''
+
+
+    return (
+      name.includes(term) ||
+      sku.includes(term) ||
+      category.includes(term)) 
+    })
 
   {/* Views */}
   if (view === 'create') {
@@ -538,13 +555,13 @@ const normalizeInventoryToItems = (data: any[]): Item[] => {
                     <p className="text-sm text-gray-500">Loading items…</p>
                   ) : itemsError ? (
                     <p className="text-sm text-red-500">{itemsError}</p>
-                  ) : warehouseItems.length === 0 ? (
+                  ) : filteredWarehouseItems.length === 0 ? (
                     <p className="text-sm text-gray-500">
                       No items in this warehouse.
                     </p>
                   ) : (
                     <ul className="space-y-2">
-                      {warehouseItems.map(item => (
+                      {filteredWarehouseItems.map(item => (
                         <li
                           key={`${item._id}-${selectedWarehouse?._id}`}
                           className="flex items-center justify-between rounded border p-2">
