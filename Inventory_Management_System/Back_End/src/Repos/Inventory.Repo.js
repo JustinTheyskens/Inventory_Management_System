@@ -6,7 +6,8 @@ const InventoryRepo = {
 
     findByItem: (itemId) => Inventory.find(itemId).populate("warehouse"),
 
-    findOne: (itemId, warehouseId) => Inventory.findOne({item: itemId, warehouse: warehouseId}),
+    findOne: (itemId, warehouseId) => Inventory.findOne(itemId, warehouseId),
+    deleteOne: (itemId, warehouseId) => Inventory.deleteOne(itemId, warehouseId),
 
     create: (data) => Inventory.create(data),
 

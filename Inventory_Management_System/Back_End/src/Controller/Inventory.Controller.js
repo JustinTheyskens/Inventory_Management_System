@@ -40,17 +40,28 @@ export const InventoryController = {
     },
 
     remove: async (req, res) => {
+        console.log('RAW REMOVE BODY:', req.body);
         try
         {
-            const {itemId, warehouseId, amount} = req.body;
+            console.log('RAW REMOVE BODY:', req.body);
 
-            const result = await InventoryService.remove(itemId, warehouseId, Number(amount));
+            const { itemId, warehouseId, amount } = req.body;
 
-            // status here, or no?
+            if (!itemId || !warehouseId || amount == null) 
+            {
+                throw new Error('Missing required fields');
+            }
+
+            const result = await InventoryService.remove(
+                itemId,
+                warehouseId,
+                Number(amount));
+
             return res.status(200).json(result);
         }
         catch (error)
         {
+            console.error('INVENTORY REMOVE ERROR:', error.message);
             res.status(400).json({message : `Error encountered: ${error.message}`});
         }
     },
