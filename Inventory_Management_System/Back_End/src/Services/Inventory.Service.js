@@ -12,7 +12,10 @@ const InventoryService = {
             throw new Error("Amount cannot be below 0.");  
         }
 
-        const existingInventory = await InventoryRepo.findOne(itemId, warehouseId);
+        const existingInventory = await InventoryRepo.findOne({
+            item: itemId,
+            warehouse: warehouseId
+        });
 
         if (existingInventory)
         {
@@ -28,7 +31,7 @@ const InventoryService = {
     },
 
     remove: async (itemId, warehouseId, amount) => {
-            console.log("REMOVE SERVICE VALUES:", { itemId, warehouseId, amount });
+            console.log("REMOVE SERVICE VALUES:", { itemId, warehouseId, amount});
 
         if (!itemId || !warehouseId) 
         {
